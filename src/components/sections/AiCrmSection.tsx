@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
   Sparkles,
@@ -78,7 +80,7 @@ export const AiCrmSection: React.FC = () => {
             </div>
 
             <div className="p-4 rounded-xl bg-[#f5f8f6] dark:bg-[#12352e]/40 border border-slate-200 dark:border-[#183932] text-xs text-slate-700 dark:text-slate-200 leading-relaxed italic">
-              "Ahmed is highly interested in the website package. He requested a proposal and has an estimated budget of $8,000–$10,000. Decision timeline is early next week."
+              &quot;Ahmed is highly interested in the website package. He requested a proposal and has an estimated budget of $8,000–$10,000. Decision timeline is early next week.&quot;
             </div>
 
             <div className="pt-2 space-y-2">
@@ -87,7 +89,7 @@ export const AiCrmSection: React.FC = () => {
                 AI Deal Health Signal
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                "Deal activity has increased over the last 7 days. The customer requested pricing details, indicating strong purchase intent. Close probability upgraded from 60% to 80%."
+                &quot;Deal activity has increased over the last 7 days. The customer requested pricing details, indicating strong purchase intent. Close probability upgraded from 60% to 80%.&quot;
               </p>
             </div>
           </div>

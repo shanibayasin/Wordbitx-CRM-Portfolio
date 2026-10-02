@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { X, ExternalLink, ArrowRight, LayoutDashboard, PhoneCall, Bot, GitPullRequest, ShieldCheck } from 'lucide-react';
 import { Button } from './Button';

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { BookOpen, FileText, ArrowRight, ShieldCheck, Sparkles, Terminal, Headphones, GitPullRequest } from 'lucide-react';
 import { useNavigation } from '../context/NavigationContext';

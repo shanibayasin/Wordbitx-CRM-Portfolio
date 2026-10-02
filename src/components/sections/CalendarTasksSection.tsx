@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, CheckSquare, Clock, Phone, Video, FileText, CheckCircle2 } from 'lucide-react';
 

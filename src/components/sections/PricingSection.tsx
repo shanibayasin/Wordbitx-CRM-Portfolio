@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Check, ArrowRight, ShieldCheck } from 'lucide-react';
 import { PRICING_TIERS } from '../../data/pricingData';

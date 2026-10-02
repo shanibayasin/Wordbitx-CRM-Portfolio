@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Check, Minus, ArrowRight, HelpCircle, ShieldCheck } from 'lucide-react';
 import { PRICING_TIERS, PRICING_COMPARISON } from '../data/pricingData';

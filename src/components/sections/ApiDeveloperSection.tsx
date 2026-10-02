@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Terminal, Key, Webhook, Code2, Copy, Check } from 'lucide-react';
 import { Button } from '../ui/Button';

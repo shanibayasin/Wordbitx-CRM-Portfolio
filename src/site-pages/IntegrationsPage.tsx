@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Search, ArrowRight, ExternalLink, Check, Plus, Key, Webhook, X } from 'lucide-react';
 import { INTEGRATIONS_DATA, IntegrationDetail } from '../data/integrationsData';

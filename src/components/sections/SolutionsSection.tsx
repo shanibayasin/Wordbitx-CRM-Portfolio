@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ArrowRight, Sparkles, Target, Headphones, Users, Building, ShoppingBag, TrendingUp, Shield } from 'lucide-react';
 import { Button } from '../ui/Button';

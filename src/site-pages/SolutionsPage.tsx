@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ArrowRight, Check, Target, Headphones, Users, Building, Shield, Sparkles } from 'lucide-react';
 import { SOLUTIONS_DATA } from '../data/solutionsData';

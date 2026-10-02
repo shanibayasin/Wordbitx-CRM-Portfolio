@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { ArrowRight, Building, CheckCircle2, Lock, Mail, Shield, User, Globe, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/Button';

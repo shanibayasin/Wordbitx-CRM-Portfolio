@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Target, Shield, Compass, Sparkles, Building2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';

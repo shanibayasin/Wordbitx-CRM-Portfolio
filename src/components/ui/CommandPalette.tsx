@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo } from 'react';
 import { Search, ArrowRight, LayoutDashboard, PhoneCall, Bot, GitPullRequest, Shield, Layers, HelpCircle, CreditCard, Sparkles, ExternalLink } from 'lucide-react';
 import { useCommandPalette } from '../../context/CommandPaletteContext';

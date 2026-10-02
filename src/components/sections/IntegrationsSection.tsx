@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ArrowRight, ExternalLink, Check, Sparkles, Layers } from 'lucide-react';
 import { INTEGRATIONS_DATA } from '../../data/integrationsData';

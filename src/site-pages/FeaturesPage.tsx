@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { ArrowRight, Check, Search, Filter, Layers, Sparkles, Target, Headphones, GitPullRequest, Bot, Shield, BarChart3 } from 'lucide-react';
 import { FEATURES_DATA, FeatureDetail } from '../data/featuresData';

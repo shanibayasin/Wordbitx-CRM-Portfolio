@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Eye, TrendingUp, CheckCircle2, Clock, Users, ArrowRight, ShieldCheck, Activity } from 'lucide-react';
 import { Button } from '../ui/Button';

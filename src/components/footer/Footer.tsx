@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ExternalLink, ShieldCheck, Heart } from 'lucide-react';
 import { useNavigation } from '../../context/NavigationContext';

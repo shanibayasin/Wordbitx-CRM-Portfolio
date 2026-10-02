@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { ArrowRight, X } from 'lucide-react';
 import { useNavigation } from '../../context/NavigationContext';

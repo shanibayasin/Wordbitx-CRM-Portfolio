@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+'use client';
+
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { PageRoute } from '../types';
 
 interface NavigationContextType {
@@ -12,51 +15,29 @@ interface NavigationContextType {
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentPath, setCurrentPath] = useState<PageRoute>(() => {
-    if (typeof window !== 'undefined') {
-      const p = window.location.pathname as PageRoute;
-      const validRoutes: PageRoute[] = [
-        '/',
-        '/features',
-        '/solutions',
-        '/integrations',
-        '/pricing',
-        '/resources',
-        '/about',
-        '/contact',
-        '/demo',
-        '/login',
-        '/signup'
-      ];
-      if (validRoutes.includes(p)) return p;
-    }
-    return '/';
-  });
-
+  const pathname = usePathname();
+  const router = useRouter();
+  const pendingHash = useRef<string | null>(null);
+  const currentPath = (pathname || '/') as PageRoute;
   const [isExploreDemoOpen, setIsExploreDemoOpen] = useState(false);
 
   useEffect(() => {
-    const handlePopState = () => {
-      const p = window.location.pathname as PageRoute;
-      setCurrentPath(p || '/');
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+    const hash = pendingHash.current;
+    if (pathname !== '/' || !hash) return;
+
+    pendingHash.current = null;
+    window.setTimeout(() => {
+      document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  }, [pathname]);
 
   const navigate = (path: PageRoute | string) => {
     if (path.startsWith('/#')) {
-      // Anchor navigation on homepage
       if (currentPath !== '/') {
-        setCurrentPath('/');
-        window.history.pushState({}, '', '/');
-        setTimeout(() => {
-          const el = document.querySelector(path.substring(1));
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 150);
+        pendingHash.current = path.substring(1);
+        router.push('/');
       } else {
-        const el = document.querySelector(path.substring(1));
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        document.querySelector(path.substring(1))?.scrollIntoView({ behavior: 'smooth' });
       }
       return;
     }
@@ -66,18 +47,12 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return;
     }
 
-    const cleanPath = path.split('#')[0] as PageRoute;
-    setCurrentPath(cleanPath);
-    window.history.pushState({}, '', path);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
     if (path.includes('#')) {
-      const hash = path.substring(path.indexOf('#'));
-      setTimeout(() => {
-        const el = document.querySelector(hash);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 200);
+      pendingHash.current = path.substring(path.indexOf('#'));
     }
+
+    router.push(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const openExploreDemo = () => setIsExploreDemoOpen(true);
