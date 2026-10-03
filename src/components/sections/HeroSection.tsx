@@ -59,7 +59,7 @@ export const HeroSection: React.FC = () => {
               onClick={openExploreDemo}
               className="w-full sm:w-auto bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/80 hover:bg-emerald-100"
             >
-              Explore Live CRM App
+              Explore CRM Preview
             </Button>
           </div>
 

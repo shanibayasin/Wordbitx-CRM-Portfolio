@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, Building, CheckCircle2, Lock, Mail, User, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Building, CheckCircle2, Lock, Mail, User } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigation } from '../context/NavigationContext';
-
-const CRM_APP_URL = 'https://wordbitx-iota.vercel.app/';
 
 export const SignupPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -74,21 +73,19 @@ export const SignupPage: React.FC = () => {
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href={CRM_APP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/dashboard"
                   className="w-full sm:w-auto"
                 >
                   <Button
                     variant="primary"
                     size="lg"
                     className="w-full sm:w-auto bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
-                    iconRight={<ExternalLink className="w-4 h-4" />}
+                    iconRight={<ArrowRight className="w-4 h-4" />}
                   >
-                    Enter Live WordbitX CRM
+                    Open CRM Preview
                   </Button>
-                </a>
+                </Link>
                 <Button
                   variant="outline"
                   size="lg"
@@ -104,14 +101,12 @@ export const SignupPage: React.FC = () => {
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Preview form only. Submitting does not create an account or transmit your information.
                 {' '}
-                <a
-                  href={CRM_APP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/dashboard"
                   className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
                 >
-                  Continue to the live CRM application
-                </a>
+                  Open the interactive CRM preview
+                </Link>
                 .
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

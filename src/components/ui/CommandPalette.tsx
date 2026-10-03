@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ArrowRight, LayoutDashboard, PhoneCall, Bot, GitPullRequest, Shield, Layers, HelpCircle, CreditCard, Sparkles, ExternalLink } from 'lucide-react';
+import { Search, ArrowRight, LayoutDashboard, PhoneCall, Bot, GitPullRequest, Shield, Layers, HelpCircle, CreditCard, Sparkles } from 'lucide-react';
 import { useCommandPalette } from '../../context/CommandPaletteContext';
 import { useNavigation } from '../../context/NavigationContext';
 
 interface CommandItem {
   id: string;
-  category: 'Navigation' | 'CRM Features' | 'Quick Actions' | 'External';
+  category: 'Navigation' | 'CRM Features' | 'Quick Actions' | 'Product';
   title: string;
   subtitle: string;
   icon: React.ReactNode;
@@ -16,7 +16,7 @@ interface CommandItem {
 
 export const CommandPalette: React.FC = () => {
   const { isOpen, closePalette } = useCommandPalette();
-  const { navigate, openExploreDemo } = useNavigation();
+  const { navigate } = useNavigation();
   const [query, setQuery] = useState('');
 
   const commands: CommandItem[] = useMemo(
@@ -144,19 +144,17 @@ export const CommandPalette: React.FC = () => {
         icon: <GitPullRequest className="w-4 h-4 text-teal-500" />,
         action: () => navigate('/#automation')
       },
-      // External
+      // Product preview
       {
-        id: 'ext-crm-app',
-        category: 'External',
-        title: 'Launch Existing CRM App',
-        subtitle: 'Open wordbitx-iota.vercel.app in a new tab',
-        icon: <ExternalLink className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />,
-        action: () => {
-          openExploreDemo();
-        }
+        id: 'crm-app',
+        category: 'Product',
+        title: 'Open CRM Preview',
+        subtitle: 'Explore the migrated dashboard with illustrative sample data',
+        icon: <LayoutDashboard className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />,
+        action: () => navigate('/dashboard')
       }
     ],
-    [navigate, openExploreDemo]
+    [navigate]
   );
 
   const filtered = useMemo(() => {

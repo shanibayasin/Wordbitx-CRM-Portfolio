@@ -6,7 +6,7 @@ import { Button } from '../ui/Button';
 import { useNavigation } from '../../context/NavigationContext';
 
 export const FinalCtaSection: React.FC = () => {
-  const { navigate, openExploreDemo } = useNavigation();
+  const { navigate } = useNavigation();
 
   return (
     <section className="px-4 py-12 sm:px-5 sm:py-16 lg:px-8 bg-transparent">
@@ -52,10 +52,10 @@ export const FinalCtaSection: React.FC = () => {
             <Button
               variant="ghost"
               size="lg"
-              onClick={openExploreDemo}
+              onClick={() => navigate('/dashboard')}
               className="text-emerald-300 hover:text-white hover:bg-emerald-950/40"
             >
-              Explore CRM application
+              Explore CRM preview
             </Button>
           </div>
 

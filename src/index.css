@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Syne:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
+@source "../wordbitx/src";
+@source "../wordbitx/components";
 
 @theme {
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -20,7 +22,10 @@
     font-family: var(--font-sans);
   }
 
-  h1, h2, h3, .font-display {
+  .portfolio-shell h1,
+  .portfolio-shell h2,
+  .portfolio-shell h3,
+  .portfolio-shell .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }

@@ -2,8 +2,6 @@ import Link from 'next/link';
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 
-const CRM_APP_URL = 'https://wordbitx-iota.vercel.app/';
-
 export const LoginPage: React.FC = () => {
   return (
     <div className="w-full min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#f5f8f6] dark:bg-[#071714]">
@@ -27,13 +25,13 @@ export const LoginPage: React.FC = () => {
             This public site does not process login credentials. Continue to the CRM application to sign in or reset your password.
           </p>
 
-          <a
-            href={CRM_APP_URL}
+          <Link
+            href="/dashboard/login"
             className="inline-flex w-full items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-sm px-5.5 py-3 rounded-xl gap-2.5 bg-[#0b1f1b] hover:bg-[#12332c] text-white border border-transparent"
           >
             Sign in to WordbitX CRM
             <ArrowRight className="w-4 h-4" />
-          </a>
+          </Link>
 
           {/* Connects to live CRM */}
           <div className="pt-4 border-t border-slate-100 dark:border-[#183932] text-center">

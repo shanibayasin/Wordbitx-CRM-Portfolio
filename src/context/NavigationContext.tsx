@@ -47,6 +47,12 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return;
     }
 
+    if (path === '/dashboard' || path.startsWith('/dashboard/')) {
+      router.push(path);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (path.includes('#')) {
       pendingHash.current = path.substring(path.indexOf('#'));
     }
