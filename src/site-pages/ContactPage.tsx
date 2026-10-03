@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Phone, MessageSquare, Building2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const ContactPage: React.FC = () => {
@@ -38,7 +38,7 @@ export const ContactPage: React.FC = () => {
             Talk to our product & revenue specialists.
           </h1>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
-            Have questions about telephone hardware compatibility, custom API integrations, or volume pricing? We're here to help.
+            Have questions about telephone hardware compatibility, custom API integrations, or volume pricing? We&apos;re here to help.
           </p>
         </div>
 
@@ -82,10 +82,10 @@ export const ContactPage: React.FC = () => {
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                    Thank you! Your message has been received.
+                    Contact form preview complete
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                    A WordbitX specialist will review your request and get back to you within 2 business hours.
+                    This site preview does not send or store messages. No contact request was delivered.
                   </p>
                   <Button variant="outline" size="sm" onClick={() => setIsSubmitted(false)}>
                     Send Another Message
@@ -93,6 +93,9 @@ export const ContactPage: React.FC = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Preview form only. Submissions are not sent to the WordbitX team.
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -100,6 +103,7 @@ export const ContactPage: React.FC = () => {
                       </label>
                       <input
                         type="text"
+                        aria-label="Full name"
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -113,6 +117,7 @@ export const ContactPage: React.FC = () => {
                       </label>
                       <input
                         type="email"
+                        aria-label="Work email"
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -129,6 +134,7 @@ export const ContactPage: React.FC = () => {
                       </label>
                       <input
                         type="text"
+                        aria-label="Company name"
                         required
                         value={formData.company}
                         onChange={(e) => setFormData({ ...formData, company: e.target.value })}
@@ -142,6 +148,7 @@ export const ContactPage: React.FC = () => {
                       </label>
                       <input
                         type="tel"
+                        aria-label="Phone number"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         placeholder="+1 (555) 000-0000"
@@ -156,6 +163,7 @@ export const ContactPage: React.FC = () => {
                         Company Size
                       </label>
                       <select
+                        aria-label="Company size"
                         value={formData.companySize}
                         onChange={(e) => setFormData({ ...formData, companySize: e.target.value })}
                         className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
@@ -171,6 +179,7 @@ export const ContactPage: React.FC = () => {
                         Primary Interest
                       </label>
                       <select
+                        aria-label="Primary interest"
                         value={formData.interest}
                         onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
                         className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
@@ -189,6 +198,7 @@ export const ContactPage: React.FC = () => {
                       How can our team help you? *
                     </label>
                     <textarea
+                      aria-label="How can our team help you?"
                       rows={4}
                       required
                       value={formData.message}
@@ -206,7 +216,7 @@ export const ContactPage: React.FC = () => {
                       isLoading={isSubmitting}
                       className="w-full justify-center bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
                     >
-                      Talk to our team
+                      Preview Contact Request
                     </Button>
                   </div>
                 </form>

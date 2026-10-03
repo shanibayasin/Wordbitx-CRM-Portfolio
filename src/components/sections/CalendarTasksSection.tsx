@@ -37,7 +37,7 @@ export const CalendarTasksSection: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#183932]">
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="text-sm font-bold text-slate-950 dark:text-white">Today's Priority Tasks</h3>
+                <h3 className="text-sm font-bold text-slate-950 dark:text-white">Today&apos;s Priority Tasks</h3>
               </div>
               <span className="text-[11px] text-slate-400 font-medium">
                 {tasks.filter((t) => t.done).length} / {tasks.length} Completed

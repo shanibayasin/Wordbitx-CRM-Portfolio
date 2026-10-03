@@ -1,14 +1,9 @@
-'use client';
-
+import Link from 'next/link';
 import React from 'react';
-import { ArrowRight, ExternalLink, Check, Sparkles, Layers } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { INTEGRATIONS_DATA } from '../../data/integrationsData';
-import { Button } from '../ui/Button';
-import { useNavigation } from '../../context/NavigationContext';
 
 export const IntegrationsSection: React.FC = () => {
-  const { navigate } = useNavigation();
-
   // Show first 8 integrations on homepage
   const featured = INTEGRATIONS_DATA.slice(0, 8);
 
@@ -20,12 +15,16 @@ export const IntegrationsSection: React.FC = () => {
             Ecosystem Connectivity
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-950 dark:text-white tracking-tight text-balance">
-            Connect WordbitX to the tools your team already uses.
+            Explore concepts for connecting WordbitX to your team&apos;s tools.
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed text-balance">
-            Whether you run on Google Workspace, Microsoft Exchange, Twilio WebRTC, or custom on-premises SIP telecom switches, WordbitX connects smoothly.
+            Browse illustrative concepts for email, telephony, messaging, and developer workflows.
           </p>
         </div>
+
+        <p className="mb-6 text-center text-xs text-slate-500 dark:text-slate-400">
+          Concept catalog only · No integrations are verified as live or available from this public-site preview
+        </p>
 
         {/* 8 Integrations Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
@@ -41,13 +40,9 @@ export const IntegrationsSection: React.FC = () => {
                   </span>
                   <span
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                      item.status === 'Available'
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                        : item.status === 'Connect'
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                        : item.status === 'Enterprise'
-                        ? 'bg-slate-100 dark:bg-[#12352e] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#183932]'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                      item.status === 'Planned concept'
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-[#183932]'
+                        : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                     }`}
                   >
                     {item.status}
@@ -71,14 +66,13 @@ export const IntegrationsSection: React.FC = () => {
 
         {/* Directory CTA */}
         <div className="mt-12 text-center">
-          <Button
-            variant="outline"
-            size="md"
-            onClick={() => navigate('/integrations')}
-            iconRight={<ArrowRight className="w-4 h-4" />}
+          <Link
+            href="/integrations"
+            className="inline-flex items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-sm px-4.5 py-2.5 rounded-lg gap-2 bg-white text-slate-700 hover:border-emerald-400 hover:text-emerald-800 dark:bg-[#0e2722] dark:text-slate-200 dark:hover:border-emerald-500 border border-slate-300 dark:border-[#183932] shadow-xs"
           >
             Explore Complete Integrations Directory (12+)
-          </Button>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
     </section>

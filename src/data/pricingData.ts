@@ -18,7 +18,7 @@ export const PRICING_TIERS: PricingTier[] = [
     tagline: 'Essential pipeline and contact tracking for small sales teams.',
     priceMonthly: 39,
     priceYearly: 29,
-    ctaText: 'Start Free Trial',
+    ctaText: 'Explore Starter',
     features: [
       'Up to 3 team members',
       '1 dedicated workspace',
@@ -38,12 +38,12 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'business',
     name: 'Business',
-    badge: 'Most Popular',
+    badge: 'Business plan',
     tagline: 'Complete CRM, telephony operations, and automation for growing firms.',
     priceMonthly: 99,
     priceYearly: 79,
     popular: true,
-    ctaText: 'Start 14-Day Free Trial',
+    ctaText: 'Explore Business',
     features: [
       'Up to 15 team members',
       'Up to 3 workspaces (e.g. Sales, Support, Operations)',

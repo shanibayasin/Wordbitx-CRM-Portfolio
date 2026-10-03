@@ -45,8 +45,6 @@ export const SOLUTIONS_MENU: MegaMenuCategory[] = [
     title: 'By Industry & Scale',
     items: [
       { name: 'Real Estate', href: '/solutions#real-estate', description: 'Track property buyers, viewings and commission milestones' },
-      { name: 'E-commerce & Retail', href: '/solutions#ecommerce', description: 'Connect orders, high-value shoppers and repeat campaigns' },
-      { name: 'Growing Businesses', href: '/solutions#growing-businesses', description: 'Replace disconnected spreadsheets with one operating system' },
       { name: 'Enterprise Operations', href: '/solutions#enterprise', description: 'Multi-workspace segregation, custom RBAC & audit logs' }
     ]
   }
@@ -67,7 +65,7 @@ export const RESOURCES_MENU: MegaMenuCategory[] = [
     items: [
       { name: 'Product Documentation', href: '/resources#docs', description: 'API reference, webhooks and developer guides' },
       { name: 'Help Center', href: '/resources#help', description: 'Step-by-step walkthroughs for common admin tasks' },
-      { name: 'Case Studies', href: '/resources#case-studies', description: 'Realistic transformation examples across diverse industries' },
+      { name: 'Enterprise Data Isolation Guide', href: '/resources#security-guide', description: 'Multi-tenant workspace and access-control guidance' },
       { name: 'FAQ & Architecture', href: '/#faq', description: 'Frequently asked questions on data security & pricing' }
     ]
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Check, Minus, ArrowRight, HelpCircle, ShieldCheck } from 'lucide-react';
+import { Check, Minus } from 'lucide-react';
 import { PRICING_TIERS, PRICING_COMPARISON } from '../data/pricingData';
 import { FAQ_DATA } from '../data/faqData';
 import { Button } from '../components/ui/Button';
@@ -23,7 +23,7 @@ export const PricingPage: React.FC = () => {
             Choose the right foundation for your revenue team.
           </h1>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
-            Start with our 14-day free trial on any plan. No credit card required. Upgrade, downgrade, or cancel anytime.
+            Compare the plan structure and indicative rates. Confirm pricing and availability before purchase.
           </p>
 
           {/* Monthly / Yearly Toggle */}
@@ -32,9 +32,12 @@ export const PricingPage: React.FC = () => {
               Monthly Billing
             </span>
             <button
+              type="button"
+              role="switch"
+              aria-checked={isYearly}
+              aria-label="Use annual billing rates"
               onClick={() => setIsYearly(!isYearly)}
-              className="relative w-12 h-6 rounded-full bg-slate-200 dark:bg-[#122e28] p-0.5 transition-colors cursor-pointer"
-              aria-label="Toggle billing frequency"
+              className="relative w-12 h-6 rounded-full bg-slate-200 dark:bg-[#122e28] p-0.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <div
                 className={`w-5 h-5 rounded-full bg-emerald-600 transition-transform ${
@@ -45,11 +48,15 @@ export const PricingPage: React.FC = () => {
             <span className={isYearly ? 'text-slate-900 dark:text-white flex items-center gap-1.5' : 'text-slate-500'}>
               <span>Annual Billing</span>
               <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60">
-                Save 20%
+                Annual rate
               </span>
             </span>
           </div>
         </div>
+
+        <p className="-mt-10 mb-10 text-center text-xs text-slate-500 dark:text-slate-400">
+          Indicative portfolio pricing · Plan details and prices are examples for this preview, not a purchase offer.
+        </p>
 
         {/* 3 Main Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">

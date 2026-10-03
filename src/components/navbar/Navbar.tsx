@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ChevronDown,
@@ -8,29 +9,14 @@ import {
   Sun,
   Menu,
   X,
-  ArrowRight,
-  ExternalLink,
-  Sparkles,
-  Layers,
-  PhoneCall,
-  GitPullRequest,
-  Bot,
-  LayoutDashboard,
-  Users,
-  Shield,
-  CreditCard,
-  HelpCircle,
-  Building,
-  Briefcase
 } from 'lucide-react';
 import { useNavigation } from '../../context/NavigationContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useCommandPalette } from '../../context/CommandPaletteContext';
 import { PRODUCT_MENU, SOLUTIONS_MENU, RESOURCES_MENU } from '../../data/navigationData';
-import { Button } from '../ui/Button';
 
 export const Navbar: React.FC = () => {
-  const { currentPath, navigate, openExploreDemo } = useNavigation();
+  const { currentPath } = useNavigation();
   const { resolvedTheme, toggleTheme } = useTheme();
   const { openPalette } = useCommandPalette();
 
@@ -64,6 +50,12 @@ export const Navbar: React.FC = () => {
 
   return (
     <header
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          setActiveDropdown(null);
+          setMobileMenuOpen(false);
+        }
+      }}
       className={`sticky top-0 z-40 w-full transition-all duration-200 ${
         isScrolled
           ? 'bg-white/95 dark:bg-[#071714]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-[#183932] shadow-xs'
@@ -73,8 +65,8 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between gap-4">
         {/* Zone 1: WordbitX Logo Matching Template */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/')}
+          <Link
+            href="/"
             className="flex items-center gap-2.5 text-left group focus-visible:outline-none cursor-pointer"
           >
             <span className="grid h-9 w-9 place-items-center rounded-xl text-base font-black bg-[#0b1f1b] text-emerald-300 shadow-sm group-hover:scale-105 transition-transform">
@@ -88,11 +80,11 @@ export const Navbar: React.FC = () => {
                 CRM
               </span>
             </span>
-          </button>
+          </Link>
         </div>
 
         {/* Zone 2: Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+        <nav className="hidden xl:flex items-center gap-1 xl:gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
           {/* Product Mega Menu */}
           <div
             className="relative"
@@ -100,8 +92,11 @@ export const Navbar: React.FC = () => {
             onMouseLeave={handleMouseLeave}
           >
             <button
+              type="button"
+              aria-expanded={activeDropdown === 'product'}
+              aria-controls="product-menu"
               onClick={() => setActiveDropdown(activeDropdown === 'product' ? null : 'product')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeDropdown === 'product' ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/80 dark:bg-[#0e2722]' : ''
               }`}
             >
@@ -115,6 +110,7 @@ export const Navbar: React.FC = () => {
 
             {activeDropdown === 'product' && (
               <div
+                id="product-menu"
                 className="absolute top-full left-0 mt-2 w-[540px] bg-white dark:bg-[#0e2722] rounded-2xl border border-slate-200 dark:border-[#183932] shadow-xl p-4 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-150"
                 onMouseEnter={() => handleMouseEnter('product')}
                 onMouseLeave={handleMouseLeave}
@@ -125,12 +121,10 @@ export const Navbar: React.FC = () => {
                       {col.title}
                     </div>
                     {col.items.map((item) => (
-                      <button
+                      <Link
                         key={item.name}
-                        onClick={() => {
-                          closeDropdown();
-                          navigate(item.href);
-                        }}
+                        href={item.href}
+                        onClick={closeDropdown}
                         className="w-full text-left p-2 rounded-xl hover:bg-emerald-50/70 dark:hover:bg-[#12352e] transition-colors group block cursor-pointer"
                       >
                         <div className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
@@ -139,7 +133,7 @@ export const Navbar: React.FC = () => {
                         <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                           {item.description}
                         </div>
-                      </button>
+                      </Link>
                     ))}
                   </div>
                 ))}
@@ -154,8 +148,11 @@ export const Navbar: React.FC = () => {
             onMouseLeave={handleMouseLeave}
           >
             <button
+              type="button"
+              aria-expanded={activeDropdown === 'solutions'}
+              aria-controls="solutions-menu"
               onClick={() => setActiveDropdown(activeDropdown === 'solutions' ? null : 'solutions')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeDropdown === 'solutions' ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/80 dark:bg-[#0e2722]' : ''
               }`}
             >
@@ -169,6 +166,7 @@ export const Navbar: React.FC = () => {
 
             {activeDropdown === 'solutions' && (
               <div
+                id="solutions-menu"
                 className="absolute top-full left-0 mt-2 w-[520px] bg-white dark:bg-[#0e2722] rounded-2xl border border-slate-200 dark:border-[#183932] shadow-xl p-4 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-150"
                 onMouseEnter={() => handleMouseEnter('solutions')}
                 onMouseLeave={handleMouseLeave}
@@ -179,12 +177,10 @@ export const Navbar: React.FC = () => {
                       {col.title}
                     </div>
                     {col.items.map((item) => (
-                      <button
+                      <Link
                         key={item.name}
-                        onClick={() => {
-                          closeDropdown();
-                          navigate(item.href);
-                        }}
+                        href={item.href}
+                        onClick={closeDropdown}
                         className="w-full text-left p-2 rounded-xl hover:bg-emerald-50/70 dark:hover:bg-[#12352e] transition-colors group block cursor-pointer"
                       >
                         <div className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
@@ -193,7 +189,7 @@ export const Navbar: React.FC = () => {
                         <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                           {item.description}
                         </div>
-                      </button>
+                      </Link>
                     ))}
                   </div>
                 ))}
@@ -202,34 +198,34 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Features */}
-          <button
-            onClick={() => navigate('/features')}
+          <Link
+            href="/features"
             className={`px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer ${
               currentPath === '/features' ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''
             }`}
           >
             Features
-          </button>
+          </Link>
 
           {/* Integrations */}
-          <button
-            onClick={() => navigate('/integrations')}
+          <Link
+            href="/integrations"
             className={`px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer ${
               currentPath === '/integrations' ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''
             }`}
           >
             Integrations
-          </button>
+          </Link>
 
           {/* Pricing */}
-          <button
-            onClick={() => navigate('/pricing')}
+          <Link
+            href="/pricing"
             className={`px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer ${
               currentPath === '/pricing' ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''
             }`}
           >
             Pricing
-          </button>
+          </Link>
 
           {/* Resources Dropdown */}
           <div
@@ -238,8 +234,11 @@ export const Navbar: React.FC = () => {
             onMouseLeave={handleMouseLeave}
           >
             <button
+              type="button"
+              aria-expanded={activeDropdown === 'resources'}
+              aria-controls="resources-menu"
               onClick={() => setActiveDropdown(activeDropdown === 'resources' ? null : 'resources')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeDropdown === 'resources' ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/80 dark:bg-[#0e2722]' : ''
               }`}
             >
@@ -253,6 +252,7 @@ export const Navbar: React.FC = () => {
 
             {activeDropdown === 'resources' && (
               <div
+                id="resources-menu"
                 className="absolute top-full right-0 mt-2 w-[480px] bg-white dark:bg-[#0e2722] rounded-2xl border border-slate-200 dark:border-[#183932] shadow-xl p-4 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-150"
                 onMouseEnter={() => handleMouseEnter('resources')}
                 onMouseLeave={handleMouseLeave}
@@ -263,12 +263,10 @@ export const Navbar: React.FC = () => {
                       {col.title}
                     </div>
                     {col.items.map((item) => (
-                      <button
+                      <Link
                         key={item.name}
-                        onClick={() => {
-                          closeDropdown();
-                          navigate(item.href);
-                        }}
+                        href={item.href}
+                        onClick={closeDropdown}
                         className="w-full text-left p-2 rounded-xl hover:bg-emerald-50/70 dark:hover:bg-[#12352e] transition-colors group block cursor-pointer"
                       >
                         <div className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
@@ -277,7 +275,7 @@ export const Navbar: React.FC = () => {
                         <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                           {item.description}
                         </div>
-                      </button>
+                      </Link>
                     ))}
                   </div>
                 ))}
@@ -315,28 +313,29 @@ export const Navbar: React.FC = () => {
           </button>
 
           {/* Sign In */}
-          <button
-            onClick={() => navigate('/login')}
-            className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+          <Link
+            href="/login"
+            className="hidden sm:inline-flex text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
           >
             Sign In
-          </button>
+          </Link>
 
           {/* Start Free */}
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => navigate('/signup')}
-            className="hidden sm:inline-flex bg-[#0b1f1b] hover:bg-[#12352e] text-white dark:bg-emerald-400 dark:text-[#0b1f1b] dark:hover:bg-emerald-300"
+          <Link
+            href="/signup"
+            className="hidden sm:inline-flex items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-xs px-3 py-1.5 rounded-lg gap-1.5 whitespace-nowrap cursor-pointer bg-[#0b1f1b] hover:bg-[#12352e] text-white dark:bg-emerald-400 dark:text-[#0b1f1b] dark:hover:bg-emerald-300"
           >
             Start Free
-          </Button>
+          </Link>
 
           {/* Mobile hamburger */}
           <button
+            type="button"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-white hover:bg-emerald-50 dark:hover:bg-[#0e2722] transition-colors cursor-pointer"
-            aria-label="Toggle mobile menu"
+            className="xl:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-white hover:bg-emerald-50 dark:hover:bg-[#0e2722] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -345,9 +344,9 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-200 dark:border-[#183932] bg-white dark:bg-[#071714] px-4 py-4 space-y-4 animate-in fade-in duration-150">
+        <div id="mobile-navigation" className="xl:hidden border-b border-slate-200 dark:border-[#183932] bg-white dark:bg-[#071714] px-4 py-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="space-y-1">
-            {['/', '/features', '/solutions', '/integrations', '/pricing', '/resources', '/about', '/contact'].map((path) => {
+            {['/', '/features', '/solutions', '/integrations', '/pricing', '/resources', '/about', '/contact', '/login'].map((path) => {
               const label =
                 path === '/'
                   ? 'Overview'
@@ -363,45 +362,37 @@ export const Navbar: React.FC = () => {
                   ? 'Guides & Playbooks'
                   : path === '/about'
                   ? 'About WordbitX'
-                  : 'Contact Sales & Support';
+                  : path === '/contact'
+                  ? 'Contact Sales & Support'
+                  : 'Sign In';
               return (
-                <button
+                <Link
                   key={path}
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigate(path);
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm font-semibold rounded-lg hover:bg-emerald-50 dark:hover:bg-[#0e2722] text-slate-900 dark:text-white hover:text-emerald-800 dark:hover:text-emerald-300"
+                  href={path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full text-left px-3 py-2 text-sm font-semibold rounded-lg hover:bg-emerald-50 dark:hover:bg-[#0e2722] text-slate-900 dark:text-white hover:text-emerald-800 dark:hover:text-emerald-300"
                 >
                   {label}
-                </button>
+                </Link>
               );
             })}
           </div>
 
           <div className="pt-3 border-t border-slate-200 dark:border-[#183932] flex flex-col gap-2">
-            <Button
-              variant="outline"
-              size="md"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                navigate('/demo');
-              }}
-              className="w-full justify-center"
+            <Link
+              href="/demo"
+              onClick={() => setMobileMenuOpen(false)}
+              className="inline-flex w-full items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-sm px-4.5 py-2.5 rounded-lg gap-2 bg-white text-slate-700 hover:border-emerald-400 hover:text-emerald-800 dark:bg-[#0e2722] dark:text-slate-200 dark:hover:border-emerald-500 border border-slate-300 dark:border-[#183932] shadow-xs"
             >
               Book a Demo
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                navigate('/signup');
-              }}
-              className="w-full justify-center bg-[#0b1f1b] text-white dark:bg-emerald-400 dark:text-[#0b1f1b]"
+            </Link>
+            <Link
+              href="/signup"
+              onClick={() => setMobileMenuOpen(false)}
+              className="inline-flex w-full items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-sm px-4.5 py-2.5 rounded-lg gap-2 bg-[#0b1f1b] text-white dark:bg-emerald-400 dark:text-[#0b1f1b] border border-[#0b1f1b] dark:border-emerald-400 shadow-md shadow-emerald-950/10"
             >
-              Start Free Trial
-            </Button>
+              Start Free
+            </Link>
           </div>
         </div>
       )}

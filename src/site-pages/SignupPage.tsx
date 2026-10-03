@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, Building, CheckCircle2, Lock, Mail, Shield, User, Globe, ExternalLink } from 'lucide-react';
+import { ArrowRight, Building, CheckCircle2, Lock, Mail, User, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigation } from '../context/NavigationContext';
 
@@ -53,7 +53,7 @@ export const SignupPage: React.FC = () => {
             Create your WordbitX Workspace
           </h1>
           <p className="text-xs text-slate-500">
-            Start your 14-day free trial · No credit card required · Instant setup
+            Preview the signup flow. No account is created and no information is transmitted.
           </p>
         </div>
 
@@ -66,10 +66,10 @@ export const SignupPage: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <h3 className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                  Workspace Initialized!
+                  Workspace setup preview complete
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                  Your dedicated tenant at <code className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-[#122e28] font-mono text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-[#1e483e]">app.wordbitx.com/{formData.workspaceSlug || 'my-workspace'}</code> is ready.
+                  This site preview does not create accounts or workspaces. No workspace was created.
                 </p>
               </div>
 
@@ -101,6 +101,19 @@ export const SignupPage: React.FC = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Preview form only. Submitting does not create an account or transmit your information.
+                {' '}
+                <a
+                  href={CRM_APP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                >
+                  Continue to the live CRM application
+                </a>
+                .
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -110,6 +123,7 @@ export const SignupPage: React.FC = () => {
                     <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
+                      aria-label="Full name"
                       required
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -127,6 +141,7 @@ export const SignupPage: React.FC = () => {
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
+                      aria-label="Work email"
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -145,6 +160,7 @@ export const SignupPage: React.FC = () => {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="password"
+                    aria-label="Password"
                     required
                     minLength={8}
                     value={formData.password}
@@ -164,6 +180,7 @@ export const SignupPage: React.FC = () => {
                     <Building className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
+                      aria-label="Company name"
                       required
                       value={formData.companyName}
                       onChange={handleCompanyChange}
@@ -178,6 +195,7 @@ export const SignupPage: React.FC = () => {
                     Your Role
                   </label>
                   <select
+                    aria-label="Your role"
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
@@ -200,6 +218,7 @@ export const SignupPage: React.FC = () => {
                   <span className="text-slate-400">app.wordbitx.com/</span>
                   <input
                     type="text"
+                    aria-label="Workspace URL domain"
                     value={formData.workspaceSlug}
                     onChange={(e) => setFormData({ ...formData, workspaceSlug: e.target.value })}
                     placeholder="my-workspace"
@@ -233,7 +252,7 @@ export const SignupPage: React.FC = () => {
                   className="w-full justify-center bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
                   iconRight={<ArrowRight className="w-4 h-4" />}
                 >
-                  Create Workspace & Start Free
+                  Preview Workspace Setup
                 </Button>
               </div>
 

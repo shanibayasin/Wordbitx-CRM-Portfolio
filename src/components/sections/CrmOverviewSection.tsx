@@ -1,13 +1,8 @@
-'use client';
-
+import Link from 'next/link';
 import React from 'react';
-import { Eye, TrendingUp, CheckCircle2, Clock, Users, ArrowRight, ShieldCheck, Activity } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { useNavigation } from '../../context/NavigationContext';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 export const CrmOverviewSection: React.FC = () => {
-  const { navigate } = useNavigation();
-
   return (
     <section id="crm-overview" className="py-20 md:py-28 bg-white dark:bg-[#0e2722] border-b border-slate-200 dark:border-[#183932]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,7 +27,7 @@ export const CrmOverviewSection: React.FC = () => {
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Real-Time Pipeline Velocity</h4>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Pipeline Overview</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Monitor deal movements across stages with live weighted forecasting.</p>
                 </div>
               </div>
@@ -59,15 +54,13 @@ export const CrmOverviewSection: React.FC = () => {
             </div>
 
             <div className="pt-4 flex items-center gap-4">
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => navigate('/features')}
-                className="bg-[#0b1f1b] hover:bg-[#12352e] text-white dark:bg-emerald-400 dark:text-[#0b1f1b]"
-                iconRight={<ArrowRight className="w-4 h-4" />}
+              <Link
+                href="/features"
+                className="inline-flex items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-sm px-4.5 py-2.5 rounded-lg gap-2 bg-[#0b1f1b] hover:bg-[#12352e] text-white dark:bg-emerald-400 dark:text-[#0b1f1b] border border-[#0b1f1b] dark:border-emerald-400 shadow-md shadow-emerald-950/10"
               >
                 Explore Architecture
-              </Button>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
 
@@ -78,11 +71,11 @@ export const CrmOverviewSection: React.FC = () => {
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#183932] pb-4">
                 <div>
                   <div className="text-xs font-bold text-slate-900 dark:text-white">Executive Sales & Operations Summary</div>
-                  <div className="text-[11px] text-slate-500">Workspace: ABC Technologies · Live Telemetry</div>
+                  <div className="text-[11px] text-slate-500">Illustrative sample data · ABC Technologies demo workspace</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Sync: 12s ago</span>
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Preview</span>
                 </div>
               </div>
 

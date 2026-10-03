@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Check, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import { PRICING_TIERS } from '../../data/pricingData';
 import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
 import { useNavigation } from '../../context/NavigationContext';
 
 export const PricingSection: React.FC = () => {
@@ -31,9 +30,12 @@ export const PricingSection: React.FC = () => {
               Monthly Billing
             </span>
             <button
+              type="button"
+              role="switch"
+              aria-checked={isYearly}
+              aria-label="Use annual billing rates"
               onClick={() => setIsYearly(!isYearly)}
-              className="relative w-12 h-6 rounded-full bg-[#0b1f1b] dark:bg-emerald-950 p-0.5 transition-colors cursor-pointer border border-emerald-900/50"
-              aria-label="Toggle billing frequency"
+              className="relative w-12 h-6 rounded-full bg-[#0b1f1b] dark:bg-emerald-950 p-0.5 transition-colors cursor-pointer border border-emerald-900/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <div
                 className={`w-5 h-5 rounded-full bg-emerald-400 transition-transform ${
@@ -44,11 +46,15 @@ export const PricingSection: React.FC = () => {
             <span className={isYearly ? 'text-slate-900 dark:text-white flex items-center gap-1.5' : 'text-slate-500'}>
               <span>Annual Billing</span>
               <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300/80 dark:border-emerald-800/80">
-                Save 20%
+                Annual rate
               </span>
             </span>
           </div>
         </div>
+
+        <p className="-mt-8 mb-8 text-center text-xs text-slate-500 dark:text-slate-400">
+          Illustrative portfolio pricing · Plan details and rates are examples for this preview, not a purchase offer.
+        </p>
 
         {/* 3 Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">

@@ -10,7 +10,6 @@ import {
   Headphones,
   Users,
   Activity,
-  Play,
   CheckCircle2,
   ExternalLink,
   Shield,
@@ -80,9 +79,13 @@ export const CallCenterSection: React.FC = () => {
             Connect conversations to the customer context.
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
-            Never answer a call unprepared. WordbitX surfaces caller deal value, previous tickets, and relationship history before the first ring is answered.
+            Explore a call-center console concept for agent availability, active and waiting calls, missed-call follow-up, and customer context. This is sample UI; no telephony data is live.
           </p>
         </div>
+
+        <p className="max-w-5xl mx-auto -mt-8 mb-8 text-center text-xs text-slate-500 dark:text-slate-400">
+          Illustrative demo data · No agents, calls, recordings, or telephony integrations are connected
+        </p>
 
         {/* Call Center Console Preview */}
         <div className="max-w-5xl mx-auto bg-white dark:bg-[#0e2722] rounded-2xl border border-slate-200 dark:border-[#183932] shadow-xl overflow-hidden">
@@ -90,19 +93,19 @@ export const CallCenterSection: React.FC = () => {
           <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-[#183932] bg-slate-50/80 dark:bg-[#0b1f1b]/80 grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
             <div className="p-2">
               <span className="text-[11px] text-slate-500 font-bold block">Agents Online</span>
-              <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">6 Available</span>
+              <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">6 sample agents</span>
             </div>
             <div className="p-2">
               <span className="text-[11px] text-slate-500 font-bold block">Calls Waiting</span>
-              <span className="text-lg font-bold text-amber-700 dark:text-amber-400 tabular-nums">2 in Queue</span>
+              <span className="text-lg font-bold text-amber-700 dark:text-amber-400 tabular-nums">2 sample calls</span>
             </div>
             <div className="p-2">
               <span className="text-[11px] text-slate-500 font-bold block">Active Calls</span>
-              <span className="text-lg font-bold text-slate-900 dark:text-white tabular-nums">4 Ongoing</span>
+              <span className="text-lg font-bold text-slate-900 dark:text-white tabular-nums">4 sample calls</span>
             </div>
             <div className="p-2">
               <span className="text-[11px] text-slate-500 font-bold block">Missed / Abandon</span>
-              <span className="text-lg font-bold text-slate-500 tabular-nums">0 (0.0%)</span>
+              <span className="text-lg font-bold text-slate-500 tabular-nums">0 sample calls</span>
             </div>
             <div className="p-2 col-span-2 sm:col-span-1">
               <span className="text-[11px] text-slate-500 font-bold block">Avg Duration</span>
@@ -113,8 +116,8 @@ export const CallCenterSection: React.FC = () => {
           {/* Screen-pop Demonstration Strip */}
           <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 border-b border-emerald-200/80 dark:border-emerald-900/60 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2.5 text-emerald-950 dark:text-emerald-200">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <span className="font-bold">Live Screen-Pop:</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span className="font-bold">Sample screen-pop:</span>
               <span>Incoming call from <strong>Ahmed Khan (+1 555-019-2834)</strong></span>
               <span className="text-emerald-700 dark:text-emerald-400 font-bold">· Active Deal: $8,500</span>
             </div>
@@ -124,10 +127,13 @@ export const CallCenterSection: React.FC = () => {
           </div>
 
           {/* Navigation inside Console */}
-          <div className="flex items-center px-6 border-b border-slate-200 dark:border-[#183932] gap-6 text-xs font-semibold">
+          <div className="flex items-center px-4 sm:px-6 border-b border-slate-200 dark:border-[#183932] gap-6 text-xs font-semibold overflow-x-auto" role="tablist" aria-label="Call center preview panels">
             <button
+              type="button"
+              role="tab"
+              aria-selected={activeQueueTab === 'agents'}
               onClick={() => setActiveQueueTab('agents')}
-              className={`py-3.5 border-b-2 transition-colors cursor-pointer ${
+              className={`py-3.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeQueueTab === 'agents'
                   ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400 font-bold'
                   : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
@@ -136,8 +142,11 @@ export const CallCenterSection: React.FC = () => {
               Agent Presence & Performance (4)
             </button>
             <button
+              type="button"
+              role="tab"
+              aria-selected={activeQueueTab === 'live_calls'}
               onClick={() => setActiveQueueTab('live_calls')}
-              className={`py-3.5 border-b-2 transition-colors cursor-pointer ${
+              className={`py-3.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeQueueTab === 'live_calls'
                   ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400 font-bold'
                   : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
@@ -146,8 +155,11 @@ export const CallCenterSection: React.FC = () => {
               Call Log & Recordings
             </button>
             <button
+              type="button"
+              role="tab"
+              aria-selected={activeQueueTab === 'telephony'}
               onClick={() => setActiveQueueTab('telephony')}
-              className={`py-3.5 border-b-2 transition-colors cursor-pointer ${
+              className={`py-3.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeQueueTab === 'telephony'
                   ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400 font-bold'
                   : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
@@ -209,10 +221,7 @@ export const CallCenterSection: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400">Recording stored</span>
-                    <button className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-emerald-600 cursor-pointer" title="Play recording">
-                      <Play className="w-3.5 h-3.5" />
-                    </button>
+                    <span className="text-[11px] text-slate-400">Sample call log</span>
                   </div>
                 </div>
 
@@ -227,10 +236,7 @@ export const CallCenterSection: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400">Recording stored</span>
-                    <button className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-emerald-600 cursor-pointer" title="Play recording">
-                      <Play className="w-3.5 h-3.5" />
-                    </button>
+                    <span className="text-[11px] text-slate-400">Sample call log</span>
                   </div>
                 </div>
               </div>
@@ -243,7 +249,7 @@ export const CallCenterSection: React.FC = () => {
                     Connect your existing telephony stack
                   </h4>
                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    WordbitX bridges to your telecom infrastructure using standard SIP trunks and APIs. Keep your existing phone numbers, contracts, and carrier rates while unlocking native CRM screen-pops.
+                    This concept panel illustrates how SIP and telephony APIs could fit into a CRM workflow. Compatibility and availability are not confirmed here.
                   </p>
                 </div>
 
@@ -251,17 +257,17 @@ export const CallCenterSection: React.FC = () => {
                   <div className="p-3.5 rounded-xl border border-slate-200 dark:border-[#183932] bg-white dark:bg-[#0e2722]">
                     <strong className="block text-slate-900 dark:text-white mb-0.5">Twilio Voice API</strong>
                     <span className="text-[11px] text-slate-500">Cloud WebRTC & auto-dialer support</span>
-                    <span className="block mt-2 text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Available</span>
+                    <span className="block mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-bold">Integration concept</span>
                   </div>
                   <div className="p-3.5 rounded-xl border border-slate-200 dark:border-[#183932] bg-white dark:bg-[#0e2722]">
                     <strong className="block text-slate-900 dark:text-white mb-0.5">Vonage API</strong>
                     <span className="text-[11px] text-slate-500">Global SIP trunking & IVR integration</span>
-                    <span className="block mt-2 text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Connect Ready</span>
+                    <span className="block mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-bold">Integration concept</span>
                   </div>
                   <div className="p-3.5 rounded-xl border border-slate-200 dark:border-[#183932] bg-white dark:bg-[#0e2722]">
                     <strong className="block text-slate-900 dark:text-white mb-0.5">Custom SIP / PBX</strong>
                     <span className="text-[11px] text-slate-500">Asterisk, FreePBX, Cisco & Avaya bridges</span>
-                    <span className="block mt-2 text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Enterprise</span>
+                    <span className="block mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-bold">Enterprise concept</span>
                   </div>
                 </div>
               </div>

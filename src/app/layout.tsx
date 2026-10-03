@@ -7,7 +7,10 @@ const description =
   'WordbitX brings leads, customers, sales pipelines, support, automation, analytics and AI-assisted workflows into one powerful CRM workspace.';
 
 export const metadata: Metadata = {
-  title: 'WordbitX — Intelligent CRM for Sales, Teams & Customer Operations',
+  title: {
+    default: 'WordbitX — Intelligent CRM for Sales, Teams & Customer Operations',
+    template: '%s | WordbitX',
+  },
   description,
   openGraph: {
     type: 'website',
@@ -33,7 +36,7 @@ const structuredData = {
     '@type': 'AggregateOffer',
     priceCurrency: 'USD',
     lowPrice: '29',
-    highPrice: '149',
+    highPrice: '189',
   },
 };
 
@@ -43,10 +46,6 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Syne:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

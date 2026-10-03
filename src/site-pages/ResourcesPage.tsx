@@ -1,21 +1,16 @@
-'use client';
-
 import React from 'react';
 import { BookOpen, FileText, ArrowRight, ShieldCheck, Sparkles, Terminal, Headphones, GitPullRequest } from 'lucide-react';
-import { useNavigation } from '../context/NavigationContext';
 
 export const ResourcesPage: React.FC = () => {
-  const { navigate } = useNavigation();
-
   const guides = [
-    { title: 'CRM Implementation Playbook', category: 'Playbook', desc: 'A step-by-step framework for transitioning your revenue team from disconnected spreadsheets to a unified pipeline without deal leakage.', icon: <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
-    { title: 'Sales Velocity & Qualification Guide', category: 'Sales Strategy', desc: 'How to structure multi-factor lead scoring, qualification checklists, and weighted forecasting stages that reflect true purchase intent.', icon: <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
-    { title: 'Omnichannel Call Center Architecture', category: 'Telephony', desc: 'Best practices for bridging SIP trunks, Twilio WebRTC, and PBX systems with native CRM caller screen-pops.', icon: <Headphones className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
-    { title: 'Automation Blueprints Library', category: 'Automation', desc: '10 essential workflows for automated round-robin lead routing, SLA breach notifications, and post-sale onboarding tickets.', icon: <GitPullRequest className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
-    { title: 'AI-Assisted Sales Operations', category: 'AI Intelligence', desc: 'Leveraging contextual LLMs for deal summaries, objection-handling follow-up drafts, and stalled negotiation detection.', icon: <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
-    { title: 'Enterprise Data Isolation & RBAC', category: 'Security & Tech', desc: 'Designing multi-tenant workspace partitions, permission matrices, and audit logging for holding companies and agencies.', icon: <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
-    { title: 'REST API & Webhooks Developer Docs', category: 'Engineering', desc: 'Complete endpoint references, payload schemas, HMAC verification examples, and SDK quickstarts for custom builds.', icon: <Terminal className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
-    { title: 'Customer Support SLA Playbook', category: 'Customer Success', desc: 'Techniques for commercial support desks that prioritize high-value contract accounts while maintaining rapid response times.', icon: <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'crm-guide', title: 'CRM Implementation Playbook', category: 'Playbook', desc: 'A step-by-step framework for transitioning your revenue team from disconnected spreadsheets to a unified pipeline without deal leakage.', icon: <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'sales-guide', title: 'Sales Velocity & Qualification Guide', category: 'Sales Strategy', desc: 'How to structure multi-factor lead scoring, qualification checklists, and weighted forecasting stages that reflect true purchase intent.', icon: <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'telephony-guide', title: 'Omnichannel Call Center Architecture', category: 'Telephony', desc: 'Best practices for bridging SIP trunks, Twilio WebRTC, and PBX systems with native CRM caller screen-pops.', icon: <Headphones className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'automation-guide', title: 'Automation Blueprints Library', category: 'Automation', desc: '10 essential workflows for automated round-robin lead routing, SLA breach notifications, and post-sale onboarding tickets.', icon: <GitPullRequest className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'ai-guide', title: 'AI-Assisted Sales Operations', category: 'AI Intelligence', desc: 'Leveraging contextual LLMs for deal summaries, objection-handling follow-up drafts, and stalled negotiation detection.', icon: <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'security-guide', title: 'Enterprise Data Isolation & RBAC', category: 'Security & Tech', desc: 'Designing multi-tenant workspace partitions, permission matrices, and audit logging for holding companies and agencies.', icon: <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'docs', title: 'REST API & Webhooks Developer Docs', category: 'Engineering', desc: 'Complete endpoint references, payload schemas, HMAC verification examples, and SDK quickstarts for custom builds.', icon: <Terminal className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
+    { id: 'help', title: 'Customer Support SLA Playbook', category: 'Customer Success', desc: 'Techniques for commercial support desks that prioritize high-value contract accounts while maintaining rapid response times.', icon: <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> },
   ];
 
   return (
@@ -39,7 +34,8 @@ export const ResourcesPage: React.FC = () => {
           {guides.map((item, idx) => (
             <div
               key={idx}
-              className="p-6 rounded-2xl bg-white dark:bg-[#0b1f1b] border border-slate-200/80 dark:border-[#183932] shadow-xs flex flex-col justify-between space-y-4 hover:border-emerald-300 dark:hover:border-emerald-700/60 transition-colors"
+              id={item.id}
+              className="scroll-mt-24 p-6 rounded-2xl bg-white dark:bg-[#0b1f1b] border border-slate-200/80 dark:border-[#183932] shadow-xs flex flex-col justify-between space-y-4 hover:border-emerald-300 dark:hover:border-emerald-700/60 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -60,8 +56,8 @@ export const ResourcesPage: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-100 dark:border-[#183932]">
-                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:underline cursor-pointer inline-flex items-center gap-1">
-                  <span>Read Guide</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1">
+                  <span>Guide overview</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </div>

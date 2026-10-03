@@ -63,13 +63,9 @@ export const HeroSection: React.FC = () => {
             </Button>
           </div>
 
-          {/* Trust reassurance text */}
+          {/* Preview disclosure */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400 pt-1">
-            <span>No credit card required</span>
-            <span aria-hidden="true" className="text-emerald-600">·</span>
-            <span>Set up in minutes</span>
-            <span aria-hidden="true" className="text-emerald-600">·</span>
-            <span>Built for growing teams</span>
+            <span>Portfolio preview · Signup and demo forms do not create accounts or send information</span>
           </div>
         </div>
 

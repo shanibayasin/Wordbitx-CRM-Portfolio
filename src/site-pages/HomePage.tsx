@@ -21,7 +21,6 @@ import { ApiDeveloperSection } from '../components/sections/ApiDeveloperSection'
 import { SecuritySection } from '../components/sections/SecuritySection';
 import { MultiWorkspaceSection } from '../components/sections/MultiWorkspaceSection';
 import { SolutionsSection } from '../components/sections/SolutionsSection';
-import { TestimonialsSection } from '../components/sections/TestimonialsSection';
 import { PricingSection } from '../components/sections/PricingSection';
 import { FaqSection } from '../components/sections/FaqSection';
 import { FinalCtaSection } from '../components/sections/FinalCtaSection';
@@ -31,6 +30,10 @@ export const HomePage: React.FC = () => {
     <div className="w-full">
       {/* 3. Hero + 4. Interactive CRM Preview */}
       <HeroSection />
+
+      <p className="bg-emerald-50 px-4 py-3 text-center text-xs text-emerald-900 dark:bg-[#0e2722] dark:text-emerald-200">
+        Names, activity, and metrics in product previews are illustrative demo data.
+      </p>
 
       {/* 5. Trust / Capability Strip */}
       <TrustStrip />
@@ -95,16 +98,13 @@ export const HomePage: React.FC = () => {
       {/* 25. Solutions */}
       <SolutionsSection />
 
-      {/* 26. Testimonials */}
-      <TestimonialsSection />
-
-      {/* 27. Pricing Preview */}
+      {/* 26. Pricing Preview */}
       <PricingSection />
 
-      {/* 28. FAQ Preview */}
+      {/* 27. FAQ Preview */}
       <FaqSection />
 
-      {/* 29. Final CTA */}
+      {/* 28. Final CTA */}
       <FinalCtaSection />
     </div>
   );

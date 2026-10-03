@@ -83,7 +83,7 @@ export const CustomerSupportSection: React.FC = () => {
                   <span className="text-[11px] text-slate-400 font-normal">10:14 AM</span>
                 </div>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                  "Our automated billing webhook failed to receive the 200 OK acknowledgment on the test invoice. Can your engineering team verify if the HMAC signature secret matches the v2 endpoint?"
+                  &ldquo;Our automated billing webhook failed to receive the 200 OK acknowledgment on the test invoice. Can your engineering team verify if the HMAC signature secret matches the v2 endpoint?&rdquo;
                 </p>
               </div>
 
@@ -93,7 +93,7 @@ export const CustomerSupportSection: React.FC = () => {
                   <span className="text-[11px] text-slate-400 font-normal">10:20 AM</span>
                 </div>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                  "Customer has an active $8,500 contract in final negotiation. Escalated to Tier-2 Dev Support with priority queue tag."
+                  &ldquo;Customer has an active $8,500 contract in final negotiation. Escalated to Tier-2 Dev Support with priority queue tag.&rdquo;
                 </p>
               </div>
             </div>
@@ -106,7 +106,7 @@ export const CustomerSupportSection: React.FC = () => {
                 Customer 360° Context
               </div>
               <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold">
-                ● Live Linked
+                Sample customer context
               </span>
             </div>
 

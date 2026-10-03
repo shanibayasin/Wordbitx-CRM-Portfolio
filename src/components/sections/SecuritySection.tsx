@@ -30,13 +30,13 @@ export const SecuritySection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-14">
           <div className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-            Enterprise Security Foundation
+            Security Design Concepts
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-950 dark:text-white tracking-tight text-balance">
-            Your customer data deserves enterprise-grade protection.
+            Security belongs at the foundation of a customer workspace.
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed text-balance">
-            Architected from the ground up for strict confidentiality, workspace isolation, permission boundaries, and verifiable audit trails.
+            The product concept prioritizes confidentiality, workspace isolation, permission boundaries, and auditable activity. This preview does not verify deployed controls, audits, or certifications.
           </p>
         </div>
 

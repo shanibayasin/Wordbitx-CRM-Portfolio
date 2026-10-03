@@ -1,10 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ExternalLink, ShieldCheck, Heart } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { useNavigation } from '../../context/NavigationContext';
-
-const CRM_APP_URL = 'https://wordbitx-iota.vercel.app/';
 
 export const Footer: React.FC = () => {
   const { navigate, openExploreDemo } = useNavigation();

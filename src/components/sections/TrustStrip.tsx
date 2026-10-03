@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, Users2, Headphones, Activity, Sparkles, Building2, Briefcase, Compass, Layers } from 'lucide-react';
+import { Target, Users2, Headphones, Activity, Sparkles } from 'lucide-react';
 
 export const TrustStrip: React.FC = () => {
   const capabilities = [
@@ -15,10 +15,10 @@ export const TrustStrip: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-8">
           <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
-            Everything your team needs to run the customer journey
+            A unified view of customer operations
           </p>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Built for cross-functional collaboration across revenue, call center and service operations
+            Product concepts for collaboration across revenue, call-center, and service teams
           </p>
         </div>
 
@@ -35,26 +35,6 @@ export const TrustStrip: React.FC = () => {
               <span className="leading-snug">{cap.name}</span>
             </div>
           ))}
-        </div>
-
-        {/* Subtle abstract organization marks */}
-        <div className="mt-10 pt-8 border-t border-slate-100 dark:border-[#183932]/80 flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
-          <div className="flex items-center gap-2 font-display text-sm font-bold tracking-tight text-slate-700 dark:text-slate-300">
-            <Building2 className="w-4 h-4 text-emerald-600" />
-            <span>KRONOS ENTERPRISE</span>
-          </div>
-          <div className="flex items-center gap-2 font-display text-sm font-bold tracking-tight text-slate-700 dark:text-slate-300">
-            <Compass className="w-4 h-4 text-emerald-600" />
-            <span>MERIDIAN TECH</span>
-          </div>
-          <div className="flex items-center gap-2 font-display text-sm font-bold tracking-tight text-slate-700 dark:text-slate-300">
-            <Layers className="w-4 h-4 text-emerald-600" />
-            <span>STRATA LOGISTICS</span>
-          </div>
-          <div className="flex items-center gap-2 font-display text-sm font-bold tracking-tight text-slate-700 dark:text-slate-300">
-            <Briefcase className="w-4 h-4 text-emerald-600" />
-            <span>VERDANT CAPITAL</span>
-          </div>
         </div>
       </div>
     </section>

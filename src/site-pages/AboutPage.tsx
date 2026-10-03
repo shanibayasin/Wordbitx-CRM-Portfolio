@@ -1,13 +1,8 @@
-'use client';
-
+import Link from 'next/link';
 import React from 'react';
-import { Target, Shield, Compass, Sparkles, Building2, CheckCircle2, ArrowRight } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { useNavigation } from '../context/NavigationContext';
+import { Target, Shield, Sparkles } from 'lucide-react';
 
 export const AboutPage: React.FC = () => {
-  const { navigate } = useNavigation();
-
   return (
     <div className="w-full py-12 md:py-20 bg-[#f5f8f6] dark:bg-[#071714]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
@@ -22,6 +17,9 @@ export const AboutPage: React.FC = () => {
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
             WordbitX was conceived around a simple truth: modern revenue operations break down when customer history, phone calls, deals, and support live in separate software silos.
           </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Product vision and capabilities on this portfolio site describe concepts; they do not verify deployed services or integrations.
+          </p>
         </div>
 
         {/* Core Principles Grid */}
@@ -32,7 +30,7 @@ export const AboutPage: React.FC = () => {
             </div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white">Unified Memory</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Every customer touchpoint — email threads, telephone recordings, support tickets, and signed proposals — lives in a single chronological account record.
+              Product concept: bring customer touchpoints such as email, calls, support tickets, and proposals together in one account history.
             </p>
           </div>
 
@@ -42,7 +40,7 @@ export const AboutPage: React.FC = () => {
             </div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white">Grounded Intelligence</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              AI shouldn't be an isolated gimmick. WordbitX AI reads actual pipeline state and meeting notes to formulate real, high-intent next actions for your team.
+              AI concepts could summarize illustrative pipeline context and help teams draft or prioritize next actions. No AI processing is represented by this site preview.
             </p>
           </div>
 
@@ -52,7 +50,7 @@ export const AboutPage: React.FC = () => {
             </div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white">Modular Isolation</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Strict multi-workspace segregation ensures agencies, subsidiaries, and departments maintain data isolation while benefiting from central management.
+              A modular workspace model is envisioned for agencies, subsidiaries, and departments that need separate work areas with central administration.
             </p>
           </div>
         </div>
@@ -67,23 +65,21 @@ export const AboutPage: React.FC = () => {
               Growing organizations typically start with a lightweight spreadsheet, adopt an expensive legacy CRM, purchase a separate cloud telephony dialer, set up a third-party ticketing desk, and then struggle to keep them synced through brittle Zapier connections.
             </p>
             <p>
-              When a customer calls, the support rep doesn't know there's an active $50,000 renewal in final negotiation. When a sales rep sends a contract, they don't know the client has three critical unresolved bug tickets.
+              When a customer calls, the support rep doesn&apos;t know there&apos;s an active $50,000 renewal in final negotiation. When a sales rep sends a contract, they don&apos;t know the client has three critical unresolved bug tickets.
             </p>
             <p>
-              <strong>WordbitX unifies these operations.</strong> By treating sales pipelines, telephone communications, support desks, and workflow automations as first-class citizens of a single database, your entire team acts with complete operational awareness.
+              <strong>WordbitX is envisioned as a unified workspace.</strong> The product concept brings sales pipelines, communications, support, and workflow automation into one coherent operating experience.
             </p>
           </div>
 
           <div className="pt-4 border-t border-slate-100 dark:border-[#183932] flex items-center justify-between">
             <span className="text-xs text-slate-500 dark:text-slate-400">Interested in experiencing the platform?</span>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/demo')}
-              className="bg-[#0b1f1b] hover:bg-[#12332c] text-white border-transparent"
+            <Link
+              href="/demo"
+              className="inline-flex items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-xs px-3 py-1.5 rounded-lg gap-1.5 bg-[#0b1f1b] hover:bg-[#12332c] text-white border border-transparent whitespace-nowrap"
             >
               Book a Platform Tour
-            </Button>
+            </Link>
           </div>
         </div>
       </div>

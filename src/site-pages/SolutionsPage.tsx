@@ -1,14 +1,9 @@
-'use client';
-
+import Link from 'next/link';
 import React from 'react';
-import { ArrowRight, Check, Target, Headphones, Users, Building, Shield, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { SOLUTIONS_DATA } from '../data/solutionsData';
-import { Button } from '../components/ui/Button';
-import { useNavigation } from '../context/NavigationContext';
 
 export const SolutionsPage: React.FC = () => {
-  const { navigate } = useNavigation();
-
   return (
     <div className="w-full py-12 md:py-20 bg-[#f5f8f6] dark:bg-[#071714]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
@@ -24,6 +19,10 @@ export const SolutionsPage: React.FC = () => {
             Whether closing high-ticket B2B deals, managing hundreds of daily customer calls, or scaling an agency with isolated client spaces, WordbitX eliminates operational friction.
           </p>
         </div>
+
+        <p className="max-w-5xl mx-auto text-center text-xs text-slate-500 dark:text-slate-400">
+          Scenario metrics are illustrative examples, not measured customer outcomes.
+        </p>
 
         {/* Deep Dive Solution Cards */}
         <div className="space-y-12 max-w-5xl mx-auto">
@@ -42,9 +41,12 @@ export const SolutionsPage: React.FC = () => {
                     {sol.title}
                   </h2>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/demo')}>
+                <Link
+                  href="/demo"
+                  className="inline-flex items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-xs px-3 py-1.5 rounded-lg gap-1.5 bg-white dark:bg-[#0e2722] text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:text-emerald-800 dark:hover:border-emerald-500 border border-slate-300 dark:border-[#183932] shadow-xs"
+                >
                   Schedule Solution Walkthrough
-                </Button>
+                </Link>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -111,14 +113,12 @@ export const SolutionsPage: React.FC = () => {
             Our solution architects can configure custom pipelines, telephone bridges, and automations for your exact team size.
           </p>
           <div className="pt-2 flex justify-center gap-3">
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => navigate('/demo')}
-              className="bg-white text-[#0b1f1b] hover:bg-emerald-50 border-transparent font-semibold shadow-xs"
+            <Link
+              href="/demo"
+              className="inline-flex items-center justify-center font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 text-sm px-4.5 py-2.5 rounded-lg gap-2 bg-white text-[#0b1f1b] hover:bg-emerald-50 border border-transparent font-semibold shadow-xs"
             >
               Book a Strategy Call
-            </Button>
+            </Link>
           </div>
         </div>
       </div>

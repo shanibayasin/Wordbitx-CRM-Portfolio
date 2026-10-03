@@ -2,22 +2,11 @@
 
 import React, { useState } from 'react';
 import {
-  TrendingUp,
-  DollarSign,
-  Users,
-  CheckCircle2,
   Clock,
-  ArrowUpRight,
-  Filter,
-  MoreVertical,
-  PhoneCall,
   Sparkles,
   Shield,
-  Search,
   ExternalLink,
   ChevronRight,
-  Headphones,
-  CheckSquare
 } from 'lucide-react';
 import { useNavigation } from '../../context/NavigationContext';
 
@@ -40,9 +29,9 @@ export const HeroDashboardPreview: React.FC = () => {
           </div>
           <div className="h-4 w-px bg-slate-200 dark:bg-[#183932] hidden sm:block"></div>
           <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-            <span className="font-bold text-slate-900 dark:text-white">ABC Technologies</span>
+            <span className="font-bold text-slate-900 dark:text-white">Demo workspace</span>
             <span className="text-slate-400">/</span>
-            <span className="text-emerald-700 dark:text-emerald-400">Sales & Operations</span>
+            <span className="text-emerald-700 dark:text-emerald-400">Illustrative sample data</span>
           </div>
         </div>
 
@@ -90,12 +79,12 @@ export const HeroDashboardPreview: React.FC = () => {
           </button>
         </div>
 
-        {/* Right: Quick Action to open live CRM app */}
+        {/* Right: Link to the separate CRM application */}
         <button
           onClick={openExploreDemo}
           className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-600 hover:underline cursor-pointer"
         >
-          <span>Launch full app</span>
+          <span>Open CRM application</span>
           <ExternalLink className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -239,10 +228,10 @@ export const HeroDashboardPreview: React.FC = () => {
                 <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80">
                   <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-xs font-bold mb-1.5">
                     <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span>AI Deal Insight</span>
+                    <span>Sample AI Deal Insight</span>
                   </div>
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                    Deal activity on <strong>ABC Technologies</strong> surged 34% this week. Contract viewed 4 times by the finance lead. Suggest closing follow-up today before 4 PM.
+                    Example insight only — a CRM could summarize recent deal activity and suggest a follow-up for review.
                   </p>
                 </div>
 
@@ -385,13 +374,13 @@ export const HeroDashboardPreview: React.FC = () => {
             <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#183932]">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Real-Time Inbound Lead Stream
+                Sample Lead Intake
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Auto-scored by AI intent models and routed via territory rules</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Illustrative scoring and routing workflow</p>
               </div>
               <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Live sync active
+                Sample activity
               </span>
             </div>
 
@@ -526,13 +515,13 @@ export const HeroDashboardPreview: React.FC = () => {
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-semibold">
             <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            Workspace Isolation Active
+            Workspace isolation preview
           </span>
           <span>·</span>
           <span>Role: Super Admin</span>
         </div>
         <div className="flex items-center gap-3">
-          <span>Connected: Gmail, Twilio Voice, WhatsApp API</span>
+          <span>Integration concepts: email, telephony, messaging</span>
           <button
             onClick={() => navigate('/features')}
             className="text-emerald-700 dark:text-emerald-400 hover:underline font-bold cursor-pointer"

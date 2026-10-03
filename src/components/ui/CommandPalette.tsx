@@ -5,8 +5,6 @@ import { Search, ArrowRight, LayoutDashboard, PhoneCall, Bot, GitPullRequest, Sh
 import { useCommandPalette } from '../../context/CommandPaletteContext';
 import { useNavigation } from '../../context/NavigationContext';
 
-const CRM_APP_URL = 'https://wordbitx-iota.vercel.app/';
-
 interface CommandItem {
   id: string;
   category: 'Navigation' | 'CRM Features' | 'Quick Actions' | 'External';
@@ -101,7 +99,7 @@ export const CommandPalette: React.FC = () => {
         id: 'act-signup',
         category: 'Quick Actions',
         title: 'Create Free Workspace (Sign Up)',
-        subtitle: 'Start with 14-day free trial, no card required',
+        subtitle: 'Preview the signup flow; this site does not create an account',
         icon: <ArrowRight className="w-4 h-4 text-emerald-500" />,
         action: () => navigate('/signup')
       },

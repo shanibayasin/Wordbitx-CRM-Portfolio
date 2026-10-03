@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useNavigation } from '../../context/NavigationContext';
 
@@ -17,7 +17,7 @@ export const FinalCtaSection: React.FC = () => {
         <div className="relative max-w-3xl space-y-6">
           <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold text-emerald-300">
             <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
-            Built for real operations
+            WordbitX product preview
           </span>
 
           <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.12]">
@@ -25,7 +25,7 @@ export const FinalCtaSection: React.FC = () => {
           </h2>
 
           <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl leading-relaxed">
-            Start free, configure your team pipelines, connect your communications, and run leads, deals and service with complete clarity.
+            Explore the WordbitX CRM concept, preview its key workflows, and see how the product experience is organized.
           </p>
 
           {/* Action Buttons matching template */}
@@ -37,7 +37,7 @@ export const FinalCtaSection: React.FC = () => {
               className="bg-emerald-400 text-[#0b1f1b] hover:bg-emerald-300 border-emerald-400 font-bold shadow-lg shadow-emerald-950/30"
               iconRight={<ArrowRight className="w-4 h-4 text-[#0b1f1b]" />}
             >
-              Get started free
+              Preview signup flow
             </Button>
 
             <Button
@@ -55,20 +55,13 @@ export const FinalCtaSection: React.FC = () => {
               onClick={openExploreDemo}
               className="text-emerald-300 hover:text-white hover:bg-emerald-950/40"
             >
-              Explore live sandbox
+              Explore CRM application
             </Button>
           </div>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-emerald-200/70">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              14-day full platform access
-            </span>
-            <span className="text-emerald-700">·</span>
-            <span>No credit card required</span>
-            <span className="text-emerald-700">·</span>
-            <span>Fast migration support</span>
-          </div>
+          <p className="pt-2 text-xs text-emerald-200/70">
+            Portfolio preview only · Account creation and demo requests are not connected to a backend.
+          </p>
         </div>
       </div>
     </section>

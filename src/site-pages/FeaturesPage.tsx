@@ -34,7 +34,10 @@ export const FeaturesPage: React.FC = () => {
             Every feature designed for modern business operations.
           </h1>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
-            Explore how WordbitX unifies leads, pipelines, telephony call centers, tickets, workflows, and AI intelligence into one cohesive platform.
+            Explore the product concepts for leads, pipelines, call-center workflows, support tickets, automation, and AI-assisted sales.
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Illustrative capability catalog · This portfolio preview does not verify that every capability is deployed or connected.
           </p>
         </div>
 
@@ -45,6 +48,8 @@ export const FeaturesPage: React.FC = () => {
             {categories.map((cat) => (
               <button
                 key={cat}
+                type="button"
+                aria-pressed={selectedCategory === cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer whitespace-nowrap ${
                   selectedCategory === cat
@@ -62,6 +67,7 @@ export const FeaturesPage: React.FC = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Search features"
               placeholder="Search features..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -123,7 +129,7 @@ export const FeaturesPage: React.FC = () => {
                       onClick={openExploreDemo}
                       className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
-                      Inspect in Live App
+                      Explore the CRM application
                     </button>
                   </div>
                 </div>
@@ -134,11 +140,11 @@ export const FeaturesPage: React.FC = () => {
                     Real-World Operational Scenario
                   </div>
                   <p className="text-slate-700 dark:text-slate-300 leading-relaxed italic">
-                    "{feat.useCase}"
+                    &ldquo;{feat.useCase}&rdquo;
                   </p>
                   <div className="pt-2 border-t border-slate-200/60 dark:border-[#183932] flex items-center justify-between text-[11px] text-slate-500">
                     <span>Target Deployment: Standard</span>
-                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">Ready Out of the Box</span>
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">Illustrative scenario</span>
                   </div>
                 </div>
               </div>

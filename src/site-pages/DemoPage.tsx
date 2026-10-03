@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, CheckCircle2, Clock, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigation } from '../context/NavigationContext';
 
@@ -55,7 +55,7 @@ export const DemoPage: React.FC = () => {
             Book a 1-on-1 personalized WordbitX demo.
           </h1>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
-            Walk through custom sales pipelines, telephony queue configurations, and AI workflows configured specifically for your team's industry.
+            Walk through custom sales pipelines, telephony queue configurations, and AI workflows configured specifically for your team&apos;s industry.
           </p>
         </div>
 
@@ -67,22 +67,21 @@ export const DemoPage: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <h3 className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                  Demo Session Scheduled!
+                  Demo request preview complete
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                  A calendar invitation and Google Meet link have been prepared for <strong>{formData.email}</strong> on <strong>{formData.date}</strong>.
+                  This site preview does not send demo requests or schedule meetings. No booking was made.
                 </p>
               </div>
 
               <div className="p-4 max-w-md mx-auto rounded-xl bg-slate-50 dark:bg-[#0e2722] border border-slate-200 dark:border-[#183932] text-xs text-left space-y-1">
-                <div><strong>Host:</strong> Senior Solutions Architect</div>
-                <div><strong>Attendee:</strong> {formData.name} ({formData.company})</div>
-                <div><strong>Focus Areas:</strong> {formData.features.join(', ')}</div>
+                <div><strong>Selected date:</strong> {formData.date}</div>
+                <div><strong>Focus areas:</strong> {formData.features.join(', ') || 'None selected'}</div>
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button variant="primary" size="md" onClick={openExploreDemo} className="bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white">
-                  Explore Live App While Waiting
+                  Explore the CRM application
                 </Button>
                 <Button variant="outline" size="md" onClick={() => setIsBooked(false)}>
                   Modify Booking
@@ -91,6 +90,10 @@ export const DemoPage: React.FC = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6 text-xs">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Preview form only. Submissions are not sent and do not reserve a demo time.
+              </p>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -98,6 +101,7 @@ export const DemoPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    aria-label="Your name"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -112,6 +116,7 @@ export const DemoPage: React.FC = () => {
                   </label>
                   <input
                     type="email"
+                    aria-label="Work email"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -128,6 +133,7 @@ export const DemoPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    aria-label="Company name"
                     required
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
@@ -141,6 +147,7 @@ export const DemoPage: React.FC = () => {
                     Team Size
                   </label>
                   <select
+                    aria-label="Team size"
                     value={formData.teamSize}
                     onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
@@ -158,6 +165,7 @@ export const DemoPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    aria-label="Your role"
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     placeholder="e.g. Sales Director"
@@ -236,7 +244,7 @@ export const DemoPage: React.FC = () => {
                   isLoading={isSubmitting}
                   className="w-full justify-center bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
                 >
-                  Confirm & Schedule Demo
+                  Preview Demo Request
                 </Button>
               </div>
             </form>

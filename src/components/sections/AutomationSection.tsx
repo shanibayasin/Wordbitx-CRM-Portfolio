@@ -57,24 +57,29 @@ export const AutomationSection: React.FC = () => {
             Automate the work between the work.
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
-            Design branch-aware workflows that trigger assignments, follow-up deadlines, and multi-channel notifications without code.
+            Explore a workflow concept that routes a new lead, notifies a teammate, creates a follow-up task, and updates a deal stage. The interactive flow is a UI simulation—not a running backend automation.
           </p>
         </div>
+
+        <p className="max-w-4xl mx-auto -mt-8 mb-8 text-center text-xs text-slate-500 dark:text-slate-400">
+          Workflow concept preview · Running the test only animates this sample flow
+        </p>
 
         {/* Visual Workflow Builder Showcase */}
         <div className="max-w-4xl mx-auto bg-white dark:bg-[#0e2722] rounded-2xl border border-slate-200 dark:border-[#183932] shadow-xl p-6 sm:p-8 space-y-8">
           <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-[#183932]">
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400">Rule #WF-109</span>
+                <span className="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400">Sample workflow</span>
                 <span className="text-slate-400">·</span>
                 <span className="text-xs font-bold text-slate-900 dark:text-white">Enterprise Inbound Fast-Track</span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">Trigger: On Inbound Lead Creation · Status: Active</p>
+              <p className="text-xs text-slate-500 mt-0.5">Trigger: Lead created · Status: Preview only</p>
             </div>
 
             <div className="flex items-center gap-2">
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 onClick={resetSimulation}
@@ -84,6 +89,7 @@ export const AutomationSection: React.FC = () => {
                 Reset
               </Button>
               <Button
+                type="button"
                 variant="primary"
                 size="sm"
                 onClick={runSimulation}
@@ -110,12 +116,12 @@ export const AutomationSection: React.FC = () => {
                 Event Trigger
               </span>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mt-0.5">
-                New Lead Created (Ahmed Khan · ABC Technologies)
+                New lead created (illustrative sample)
               </div>
             </div>
 
             <div className={`transition-colors ${activeStep >= 1 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-700'}`}>
-              <ArrowDown className="w-5 h-5 animate-bounce" />
+              <ArrowDown className="w-5 h-5" />
             </div>
 
             {/* Step 2: Evaluation */}
@@ -130,7 +136,7 @@ export const AutomationSection: React.FC = () => {
                 Condition Check
               </span>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mt-0.5">
-                Is Lead Score &gt; 80? (Actual Score: 92/100)
+                Is lead score above the example threshold?
               </div>
             </div>
 
@@ -148,10 +154,10 @@ export const AutomationSection: React.FC = () => {
             >
               <div className="flex items-center justify-center gap-1.5 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
                 <Check className="w-4 h-4" />
-                <span>Condition Met: YES (High Priority Route)</span>
+                <span>Example condition met (high-priority route)</span>
               </div>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mt-0.5">
-                Assign to VIP Senior Rep (Sarah Ahmed)
+                Assign to a senior sales agent
               </div>
             </div>
 
@@ -171,7 +177,7 @@ export const AutomationSection: React.FC = () => {
                 Scheduled Task
               </span>
               <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mt-0.5">
-                Create 15-Minute SLA Follow-up Task on Sarah's Calendar
+                Create follow-up task
               </div>
             </div>
 
@@ -195,7 +201,7 @@ export const AutomationSection: React.FC = () => {
               </div>
               {activeStep >= 5 && (
                 <div className="mt-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                  ✓ Workflow execution completed successfully in 0.42 seconds
+                  Preview sequence complete · No workflow was executed
                 </div>
               )}
             </div>

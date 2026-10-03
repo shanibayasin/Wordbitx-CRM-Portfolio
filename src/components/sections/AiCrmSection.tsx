@@ -61,9 +61,13 @@ export const AiCrmSection: React.FC = () => {
             Your CRM, with intelligence built in.
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed text-balance">
-            Not a generic chatbot or disconnected widget. WordbitX AI reads your actual pipeline history, call logs, and customer tickets to draft actionable next steps for your reps.
+            Explore AI CRM concepts for summarizing customer context, drafting follow-ups, scoring leads, and surfacing deal signals. This interactive preview uses sample content only; it does not run AI processing or access CRM data.
           </p>
         </div>
+
+        <p className="mx-auto -mt-8 mb-8 w-fit rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-center text-xs font-medium text-slate-600 dark:border-[#183932] dark:bg-[#0e2722] dark:text-slate-300">
+          Product concept preview · Sample output only · No AI service connected
+        </p>
 
         {/* 4 AI Pillars Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto mb-10">
@@ -117,14 +121,15 @@ export const AiCrmSection: React.FC = () => {
               <div className="relative mt-3">
                 <textarea
                   readOnly
+                  aria-label="Illustrative AI follow-up draft"
                   value={generatedFollowUp}
                   rows={6}
                   className="w-full p-3.5 rounded-xl bg-[#f5f8f6] dark:bg-[#12352e]/30 border border-slate-200 dark:border-[#183932] text-xs text-slate-800 dark:text-slate-200 font-sans leading-relaxed resize-none focus:outline-none"
                 />
                 <button
                   onClick={handleCopy}
+                  aria-label={copied ? 'Sample draft copied' : 'Copy sample draft'}
                   className="absolute bottom-3 right-3 p-1.5 rounded-md bg-white dark:bg-[#0e2722] border border-slate-200 dark:border-[#183932] text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer"
-                  title="Copy email copy"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
@@ -132,7 +137,7 @@ export const AiCrmSection: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Generated in 0.2s from recent discovery call notes and contract proposal variables.
+              Illustrative draft for this preview. No AI request was sent.
             </p>
           </div>
         </div>
@@ -141,12 +146,13 @@ export const AiCrmSection: React.FC = () => {
         <div className="max-w-5xl mx-auto p-6 rounded-2xl bg-white dark:bg-[#0e2722] border border-emerald-200 dark:border-emerald-800/60 shadow-sm space-y-4">
           <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
             <Bot className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Interactive Operational Copilot</span>
+            <span>AI Sales Assistant Concept · Sample Responses</span>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <input
               type="text"
+              aria-label="Ask the sample AI sales assistant"
               value={assistantQuery}
               onChange={(e) => setAssistantQuery(e.target.value)}
               className="w-full p-3 rounded-xl bg-[#f5f8f6] dark:bg-[#12352e]/40 border border-slate-200 dark:border-[#183932] text-xs text-slate-900 dark:text-white focus:outline-emerald-500"
@@ -154,10 +160,13 @@ export const AiCrmSection: React.FC = () => {
             <Button
               variant="primary"
               size="md"
-              onClick={() => {}}
+              onClick={() => setAssistantResponse({
+                title: 'Sample response only',
+                details: `This preview does not run AI processing or access CRM data. Your prompt (“${assistantQuery || 'No prompt entered'}”) was not sent.`,
+              })}
               className="w-full sm:w-auto bg-[#0b1f1b] hover:bg-[#12352e] dark:bg-emerald-400 dark:text-[#0b1f1b] dark:hover:bg-emerald-300"
             >
-              Ask Copilot
+              Preview response
             </Button>
           </div>
 
@@ -165,6 +174,7 @@ export const AiCrmSection: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="text-[11px] text-slate-500">Suggested queries:</span>
             <button
+              type="button"
               onClick={() =>
                 setQuerySample(
                   'Which leads need follow-up today?',
@@ -177,6 +187,7 @@ export const AiCrmSection: React.FC = () => {
               Which leads need follow-up today?
             </button>
             <button
+              type="button"
               onClick={() =>
                 setQuerySample(
                   'Which deals have stalled in negotiation over 14 days?',

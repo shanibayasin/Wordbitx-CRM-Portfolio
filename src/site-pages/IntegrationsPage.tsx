@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, ArrowRight, ExternalLink, Check, Plus, Key, Webhook, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { INTEGRATIONS_DATA, IntegrationDetail } from '../data/integrationsData';
 import { Button } from '../components/ui/Button';
 import { useNavigation } from '../context/NavigationContext';
@@ -10,8 +10,6 @@ export const IntegrationsPage: React.FC = () => {
   const [selectedCat, setSelectedCat] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [connectModalItem, setConnectModalItem] = useState<IntegrationDetail | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectSuccess, setConnectSuccess] = useState(false);
   const { navigate } = useNavigation();
 
   const categories = ['All', 'Communication', 'Telephony', 'Sales', 'Productivity', 'Developer', 'Automation'];
@@ -25,18 +23,6 @@ export const IntegrationsPage: React.FC = () => {
     return matchesCat && matchesSearch;
   });
 
-  const handleSimulateConnect = () => {
-    setIsConnecting(true);
-    setTimeout(() => {
-      setIsConnecting(false);
-      setConnectSuccess(true);
-      setTimeout(() => {
-        setConnectSuccess(false);
-        setConnectModalItem(null);
-      }, 1500);
-    }, 800);
-  };
-
   return (
     <div className="w-full py-12 md:py-20 bg-[#f5f8f6] dark:bg-[#071714]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -46,12 +32,16 @@ export const IntegrationsPage: React.FC = () => {
             Ecosystem Directory
           </div>
           <h1 className="font-display text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white tracking-tight text-balance">
-            Connect the communication & telephony tools you rely on.
+            Explore integration concepts for the communication and telephony tools your team uses.
           </h1>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed text-balance">
-            Plug your existing email hosts, telephony carriers, messaging channels, and payment systems into WordbitX without replacing your hardware.
+            Browse illustrative concepts across email, telephony, messaging, payments, and developer workflows.
           </p>
         </div>
+
+        <p className="max-w-4xl mx-auto -mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+          Concept catalog only · No integrations are verified as live or available from this public-site preview
+        </p>
 
         {/* Filter & Search Bar */}
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 p-2 bg-white dark:bg-[#0b1f1b] rounded-2xl border border-slate-200/80 dark:border-[#183932] shadow-xs">
@@ -59,6 +49,8 @@ export const IntegrationsPage: React.FC = () => {
             {categories.map((cat) => (
               <button
                 key={cat}
+                type="button"
+                aria-pressed={selectedCat === cat}
                 onClick={() => setSelectedCat(cat)}
                 className={`px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer whitespace-nowrap ${
                   selectedCat === cat
@@ -75,6 +67,7 @@ export const IntegrationsPage: React.FC = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Search integrations"
               placeholder="Search integrations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -97,13 +90,9 @@ export const IntegrationsPage: React.FC = () => {
                   </span>
                   <span
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                      item.status === 'Available'
-                        ? 'bg-emerald-50 dark:bg-[#122e28] text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-[#1e483e]'
-                        : item.status === 'Connect'
-                        ? 'bg-emerald-50/80 dark:bg-[#122e28] text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-[#1e483e]'
-                        : item.status === 'Enterprise'
-                        ? 'bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800'
-                        : 'bg-slate-100 dark:bg-[#122e28] text-slate-600 dark:text-slate-300'
+                      item.status === 'Planned concept'
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#183932]'
+                        : 'bg-emerald-50 dark:bg-[#122e28] text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-[#1e483e]'
                     }`}
                   >
                     {item.status}
@@ -131,7 +120,7 @@ export const IntegrationsPage: React.FC = () => {
                   size="sm"
                   onClick={() => setConnectModalItem(item)}
                 >
-                  Configure
+                  View details
                 </Button>
               </div>
             </div>
@@ -157,10 +146,21 @@ export const IntegrationsPage: React.FC = () => {
         {/* Connection Modal */}
         {connectModalItem && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-            <div className="bg-white dark:bg-[#0b1f1b] rounded-2xl border border-slate-200/80 dark:border-[#183932] max-w-md w-full p-6 shadow-2xl relative">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="integration-modal-title"
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setConnectModalItem(null);
+              }}
+              className="bg-white dark:bg-[#0b1f1b] rounded-2xl border border-slate-200/80 dark:border-[#183932] max-w-md w-full p-6 shadow-2xl relative"
+            >
               <button
+                type="button"
+                aria-label="Close integration details"
+                autoFocus
                 onClick={() => setConnectModalItem(null)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -170,55 +170,37 @@ export const IntegrationsPage: React.FC = () => {
                   {connectModalItem.name.split(' ')[0]}
                 </span>
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 dark:text-white">
-                    Connect {connectModalItem.name}
+                  <h3 id="integration-modal-title" className="font-bold text-base text-slate-900 dark:text-white">
+                    {connectModalItem.name}
                   </h3>
-                  <span className="text-xs text-slate-500">Status: {connectModalItem.status}</span>
+                  <span className="text-xs text-slate-500">Catalog listing: {connectModalItem.status}</span>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                This integration enables real-time synchronization between WordbitX customer records and {connectModalItem.name}.
+                {connectModalItem.description}
               </p>
 
-              <div className="space-y-3 p-3.5 bg-slate-50 dark:bg-[#0e2722] rounded-xl border border-slate-200/80 dark:border-[#183932] text-xs">
-                <div>
-                  <label className="text-[11px] font-medium text-slate-500 block mb-1">API Key / Account SID</label>
-                  <input
-                    type="password"
-                    defaultValue="wbx_live_pk_test_sample"
-                    className="w-full p-2 text-xs bg-white dark:bg-[#071714] border border-slate-300 dark:border-[#183932] rounded-lg text-slate-900 dark:text-white font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-slate-500 block mb-1">Target Workspace</label>
-                  <select className="w-full p-2 text-xs bg-white dark:bg-[#071714] border border-slate-300 dark:border-[#183932] rounded-lg text-slate-900 dark:text-white">
-                    <option>ABC Technologies — Primary Workspace</option>
-                    <option>Customer Support Desk</option>
-                  </select>
-                </div>
-              </div>
+              <p className="p-3.5 bg-slate-50 dark:bg-[#0e2722] rounded-xl border border-slate-200/80 dark:border-[#183932] text-xs text-slate-600 dark:text-slate-400">
+                This site preview cannot establish or test live connections. Contact the team to confirm availability and setup.
+              </p>
 
-              {connectSuccess ? (
-                <div className="mt-4 p-3 bg-emerald-50 dark:bg-[#122e28] text-emerald-700 dark:text-emerald-300 rounded-xl text-xs text-center font-semibold border border-emerald-200 dark:border-[#1e483e]">
-                  ✓ Connected successfully to WordbitX!
-                </div>
-              ) : (
-                <div className="mt-6 flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setConnectModalItem(null)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={handleSimulateConnect}
-                    isLoading={isConnecting}
-                    className="bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
-                  >
-                    Test & Save Connection
-                  </Button>
-                </div>
-              )}
+              <div className="mt-6 flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setConnectModalItem(null)}>
+                  Close
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setConnectModalItem(null);
+                    navigate('/contact');
+                  }}
+                  className="bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
+                >
+                  Ask about setup
+                </Button>
+              </div>
             </div>
           </div>
         )}
