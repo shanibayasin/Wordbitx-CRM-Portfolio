@@ -1,30 +1,76 @@
 'use client';
 
-import React, { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../../components/ui/Card.tsx';
 import { Button } from '../../../../components/ui/Button.tsx';
 import { Badge } from '../../../../components/ui/Badge.tsx';
 import { ArrowLeft, Mail, Phone, Calendar, UserCheck, ExternalLink } from 'lucide-react';
 import { formatDate } from '../../../../lib/utils.ts';
+import type { Lead } from '../../../../types/index.ts';
 
-export default function LeadDetailPage({ params }: { params: { id: string } }) {
+export default function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const [referenceTime] = useState(() => Date.now());
+  const [lead, setLead] = useState<Lead | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Detail view representation
-  const lead = {
-    id: params?.id || 'lead_1',
-    name: 'Alex Morgan',
-    email: 'alex.morgan@fintechcorp.com',
-    phone: '+1 555-234-8901',
-    source: 'LinkedIn InMail',
-    score: 85,
-    status: 'QUALIFIED',
-    assignedTo: 'Marcus Wright',
-    notes: 'Interested in enterprise seat licensing for 45 engineers. Budget approved for Q4 deployment.',
-    createdAt: new Date(referenceTime - 86400000 * 3),
-  };
+  useEffect(() => {
+    const loadLead = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`/api/leads/${id}`, { cache: 'no-store' });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(payload?.error?.message || payload?.error || 'Unable to load lead details.');
+        }
+
+        const nextLead = payload?.data ?? payload;
+        setLead({
+          id: String(nextLead.id ?? nextLead._id ?? id),
+          name: nextLead.name ?? 'Untitled Lead',
+          email: nextLead.email ?? null,
+          phone: nextLead.phone ?? null,
+          source: nextLead.source ?? null,
+          score: Number(nextLead.score ?? 0),
+          status: nextLead.status ?? 'NEW',
+          organizationId: nextLead.organizationId ?? '',
+          assignedToId: nextLead.assignedToId ?? null,
+          company: nextLead.company ?? null,
+          priority: nextLead.priority ?? 'MEDIUM',
+          notes: nextLead.notes ?? null,
+          createdAt: nextLead.createdAt ?? new Date(),
+          updatedAt: nextLead.updatedAt ?? new Date(),
+        });
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : 'Unable to load lead details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadLead();
+  }, [id]);
+
+  if (loading) {
+    return <div className="max-w-5xl mx-auto rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">Loading lead details…</div>;
+  }
+
+  if (error || !lead) {
+    return (
+      <div className="max-w-5xl mx-auto rounded-xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <div className="font-semibold">Unable to load lead</div>
+        <div className="mt-1">{error || 'This lead could not be found.'}</div>
+        <Button variant="outline" size="sm" className="mt-3" onClick={() => router.push('/leads')}>
+          Back to leads
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -54,11 +100,11 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
                 <Mail className="h-4 w-4 text-slate-400" />
-                <span>{lead.email}</span>
+                <span>{lead.email || 'No email provided'}</span>
               </div>
               <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
                 <Phone className="h-4 w-4 text-slate-400" />
-                <span>{lead.phone}</span>
+                <span>{lead.phone || 'No phone provided'}</span>
               </div>
               <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
                 <Calendar className="h-4 w-4 text-slate-400" />
@@ -66,14 +112,14 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
               </div>
               <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
                 <UserCheck className="h-4 w-4 text-slate-400" />
-                <span>Assigned: {lead.assignedTo}</span>
+                <span>Assigned: {lead.assignedToId ? lead.assignedToId : 'Unassigned'}</span>
               </div>
             </div>
 
             <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lead Notes & Context</h4>
               <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-lg border border-slate-100 dark:border-slate-800">
-                {lead.notes}
+                {lead.notes || 'No notes provided for this lead.'}
               </p>
             </div>
           </CardContent>
@@ -92,7 +138,11 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
             <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
               <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                 <span>Acquisition Channel</span>
-                <span className="font-semibold">{lead.source}</span>
+                <span className="font-semibold">{lead.source || '—'}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <span>Company</span>
+                <span className="font-semibold">{lead.company || '—'}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                 <span>Tenant Isolation</span>

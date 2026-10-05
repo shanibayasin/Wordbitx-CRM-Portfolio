@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { signIn, signOut } from 'next-auth/react';
 import { Sidebar } from '../components/layout/Sidebar.tsx';
 import { Topbar } from '../components/layout/Topbar.tsx';
 import { MobileNav } from '../components/layout/MobileNav.tsx';
@@ -128,7 +127,21 @@ const SEED_TASKS: Task[] = [
 type CreateDealInput = Pick<DealFormValues, 'title' | 'value' | 'stage' | 'probability'>
   & Partial<Omit<DealFormValues, 'title' | 'value' | 'stage' | 'probability'>>;
 
-export default function App() {
+export default function App({ children }: { children?: ReactNode }) {
+  const pathname = usePathname();
+  if (children !== undefined && /^\/(?:dashboard\/)?leads(?:\/[^/]+)?$/.test(pathname)) {
+    return (
+      <>
+        {children}
+        <Toaster />
+      </>
+    );
+  }
+
+  return <LegacyPreviewApp />;
+}
+
+function LegacyPreviewApp() {
   const pathname = usePathname();
   const router = useRouter();
   const crmPath = pathname.replace(/^\/dashboard(?=\/|$)/, '') || '/dashboard';
@@ -684,6 +697,7 @@ export default function App() {
               setAuthLoading(true);
               const formData = new FormData(e.currentTarget);
               try {
+                const { signIn } = await import('next-auth/react');
                 const result = await signIn('credentials', {
                   email: formData.get('email'),
                   password: formData.get('password'),
@@ -803,7 +817,9 @@ export default function App() {
           organizationName: currentOrg?.name || 'Acme Technologies Inc.',
         }}
         onLogout={() => {
-          void signOut({ callbackUrl: '/dashboard/login' });
+          void import('next-auth/react').then(({ signOut }) =>
+            signOut({ callbackUrl: '/dashboard/login' }),
+          );
         }}
       />
 

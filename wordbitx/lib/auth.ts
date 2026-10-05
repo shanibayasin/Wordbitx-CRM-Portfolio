@@ -1,9 +1,54 @@
-import type { NextAuthOptions } from 'next-auth';
+import { getServerSession, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import connectToDatabase from './mongodb.ts';
 import User from '../models/User.ts';
 import Organization from '../models/Organization.ts';
+
+export type AuthenticatedSessionUser = {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string;
+  organizationId?: string;
+};
+
+export async function getCurrentUser(): Promise<AuthenticatedSessionUser | null> {
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  if (!user?.id || !user.organizationId) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    name: user.name ?? null,
+    role: user.role ?? undefined,
+    organizationId: user.organizationId,
+  };
+}
+
+export async function requireAuth(): Promise<AuthenticatedSessionUser> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    const error = new Error('Authentication required');
+    (error as Error & { statusCode?: number }).statusCode = 401;
+    throw error;
+  }
+
+  return user;
+}
+
+export function canManageLeads(role?: string) {
+  return role === 'ADMIN' || role === 'SALES' || role === 'AGENT';
+}
+
+export function canViewLeads(role?: string) {
+  return Boolean(role && ['ADMIN', 'SALES', 'SUPPORT', 'AGENT'].includes(role));
+}
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -79,8 +124,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/dashboard/login',
-    newUser: '/dashboard/register',
+    signIn: '/login',
+    newUser: '/register',
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

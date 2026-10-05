@@ -5,7 +5,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const ContactPage: React.FC = () => {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
     email: '',
     company: '',
@@ -13,18 +13,54 @@ export const ContactPage: React.FC = () => {
     companySize: '11-50',
     interest: 'Full CRM & Telephony Suite',
     message: ''
+  };
+  const [formData, setFormData] = useState({
+    ...initialFormData
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage('');
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    const apiUrl = process.env.NEXT_PUBLIC_CRM_API_URL;
+    if (!apiUrl) {
+      setErrorMessage('Contact requests are not configured right now. Please contact us by email.');
       setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json().catch(() => null) as
+        | { success?: boolean; error?: string; fieldErrors?: Record<string, string[]> }
+        | null;
+
+      if (!response.ok || !result?.success) {
+        const validationMessages = Object.values(result?.fieldErrors ?? {}).flat();
+        setErrorMessage(
+          validationMessages.join(' ') ||
+          result?.error ||
+          'We could not submit your request. Please try again.'
+        );
+        return;
+      }
+
+      setFormData({ ...initialFormData });
       setIsSubmitted(true);
-    }, 700);
+    } catch {
+      setErrorMessage('We could not reach the contact service. Check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,20 +118,25 @@ export const ContactPage: React.FC = () => {
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                    Contact form preview complete
+                    Your request has been received
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                    This site preview does not send or store messages. No contact request was delivered.
+                    Thank you for contacting WordbitX. Our team will follow up using the details you provided.
                   </p>
-                  <Button variant="outline" size="sm" onClick={() => setIsSubmitted(false)}>
+                  <Button variant="outline" size="sm" onClick={() => { setIsSubmitted(false); setErrorMessage(''); }}>
                     Send Another Message
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4 text-xs">
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Preview form only. Submissions are not sent to the WordbitX team.
+                    Share a few details and our team will get back to you.
                   </p>
+                  {errorMessage && (
+                    <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+                      {errorMessage}
+                    </p>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -216,7 +257,7 @@ export const ContactPage: React.FC = () => {
                       isLoading={isSubmitting}
                       className="w-full justify-center bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
                     >
-                      Preview Contact Request
+                      Send Contact Request
                     </Button>
                   </div>
                 </form>

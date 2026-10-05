@@ -2,45 +2,55 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Kanban, Building, User, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Kanban, User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { Button } from '../../../components/ui/Button.tsx';
 import { Input } from '../../../components/ui/Input.tsx';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../../components/ui/Card.tsx';
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const [orgName, setOrgName] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreated, setIsCreated] = useState(false);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
-    if (!orgName || !name || !email || !password) {
+    if (!name || !email || !password) {
       setError('Please fill in all required fields.');
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    if (password.length < 12) {
+      setError('Password must be at least 12 characters long.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // In production Next.js, POST /api/auth/register creates the Organization and Admin User
-      setTimeout(() => {
-        setIsLoading(false);
-        router.push('/dashboard');
-      }, 600);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const result = await response.json().catch(() => null) as
+        | { success?: boolean; error?: string; fieldErrors?: Record<string, string[]> }
+        | null;
+
+      if (!response.ok || !result?.success) {
+        const fieldErrors = Object.values(result?.fieldErrors ?? {}).flat();
+        setError(fieldErrors.join(' ') || result?.error || 'Registration failed.');
+        return;
+      }
+
+      setIsCreated(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? 'Unable to reach the registration service. Please try again.' : 'Registration failed.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -52,34 +62,32 @@ export default function RegisterPage() {
           <div className="mx-auto h-12 w-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
             <Kanban className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Create WordbitX Workspace</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">
+            {isCreated ? 'Administrator account created' : 'Set Up WordbitX Admin'}
+          </CardTitle>
           <CardDescription className="text-slate-400">
-            Set up your organization tenant and primary Super Admin account
+            {isCreated
+              ? 'Your account is ready. Sign in to manage the WordbitX workspace.'
+              : 'Create the first administrator account for the WordbitX workspace. This one-time setup closes after registration.'}
           </CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleRegister}>
+        {isCreated ? (
+          <CardFooter className="flex flex-col space-y-3 pt-2">
+            <Link href="/login" className="w-full">
+              <Button className="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-2">
+                <span>Continue to Sign In</span>
+                <ArrowRight className="h-4 w-4 ml-1.5" />
+              </Button>
+            </Link>
+          </CardFooter>
+        ) : <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
             {error && (
               <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-medium">
                 {error}
               </div>
             )}
-
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Company / Organization Name *</label>
-              <div className="relative">
-                <Building className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                <Input
-                  type="text"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  className="pl-9 bg-slate-900 border-slate-800 text-white placeholder:text-slate-500"
-                  placeholder="e.g. Apex Global Solutions"
-                  required
-                />
-              </div>
-            </div>
 
             <div>
               <label className="text-xs font-semibold text-slate-300 block mb-1">Your Full Name *</label>
@@ -120,16 +128,19 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-9 bg-slate-900 border-slate-800 text-white placeholder:text-slate-500"
-                  placeholder="At least 6 characters"
+                  placeholder="At least 12 characters"
+                  minLength={12}
+                  maxLength={128}
                   required
                 />
               </div>
             </div>
+
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-3 pt-2">
             <Button type="submit" isLoading={isLoading} className="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-2">
-              <span>Create Organization & Enter</span>
+              <span>Create Admin Account</span>
               <ArrowRight className="h-4 w-4 ml-1.5" />
             </Button>
             <p className="text-xs text-center text-slate-400">
@@ -139,7 +150,7 @@ export default function RegisterPage() {
               </Link>
             </p>
           </CardFooter>
-        </form>
+        </form>}
       </Card>
     </div>
   );

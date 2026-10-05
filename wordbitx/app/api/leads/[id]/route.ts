@@ -1,81 +1,159 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import connectToDatabase from '../../../../lib/mongodb.ts';
+import { canManageLeads, canViewLeads, requireAuth } from '../../../../lib/auth.ts';
 import Lead from '../../../../models/Lead.ts';
 import { leadSchema } from '../../../../lib/validations/leadSchema.ts';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+function jsonError(message: string, status: number, code = 'ERROR') {
+  return NextResponse.json({ success: false, error: { code, message } }, { status });
+}
+
+function serializeLead(input: unknown) {
+  const record = input as Record<string, unknown>;
+  return {
+    ...record,
+    id: String(record._id ?? record.id ?? ''),
+    organizationId: String(record.organizationId ?? ''),
+    assignedToId: record.assignedToId ? String(record.assignedToId) : null,
+    createdAt: record.createdAt ?? new Date(),
+    updatedAt: record.updatedAt ?? new Date(),
+  };
+}
+
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const currentUser = await requireAuth();
+    const { id } = await params;
+
+    if (!canViewLeads(currentUser.role)) {
+      return jsonError('You do not have permission to view leads.', 403, 'FORBIDDEN');
+    }
+
+    if (!currentUser.organizationId || !mongoose.isValidObjectId(currentUser.organizationId)) {
+      return jsonError('Organization context is missing or invalid.', 401, 'UNAUTHORIZED');
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      return jsonError('Lead id is invalid.', 400, 'VALIDATION_ERROR');
+    }
+
     await connectToDatabase();
-    const lead = await Lead.findById(id)
-      .populate('assignedToId', 'name email role avatarUrl')
-      .populate('organizationId', 'name logoUrl')
-      .lean();
+    const lead = await Lead.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      organizationId: new mongoose.Types.ObjectId(currentUser.organizationId),
+    }).lean();
 
     if (!lead) {
-      return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+      return jsonError('Lead not found for this organization.', 404, 'NOT_FOUND');
     }
 
-    return NextResponse.json({
-      id: lead._id.toString(),
-      ...lead,
-    });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to fetch lead' }, { status: 500 });
+    return NextResponse.json({ success: true, data: serializeLead(lead) });
+  } catch (error) {
+    const statusCode = (error as Error & { statusCode?: number }).statusCode ?? 500;
+    const message = error instanceof Error ? error.message : 'Failed to load lead.';
+    return jsonError(message, statusCode, statusCode === 401 ? 'UNAUTHORIZED' : statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_ERROR');
   }
 }
 
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const body = await request.json();
-    const validation = leadSchema.safeParse(body);
+    const currentUser = await requireAuth();
+    const { id } = await params;
 
+    if (!canManageLeads(currentUser.role)) {
+      return jsonError('You do not have permission to update leads.', 403, 'FORBIDDEN');
+    }
+
+    if (!currentUser.organizationId || !mongoose.isValidObjectId(currentUser.organizationId)) {
+      return jsonError('Organization context is missing or invalid.', 401, 'UNAUTHORIZED');
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      return jsonError('Lead id is invalid.', 400, 'VALIDATION_ERROR');
+    }
+
+    const rawBody = await request.json().catch(() => null);
+    if (!rawBody || typeof rawBody !== 'object') {
+      return jsonError('Request body is required.', 400, 'VALIDATION_ERROR');
+    }
+
+    if ('organizationId' in rawBody && rawBody.organizationId && String(rawBody.organizationId) !== currentUser.organizationId) {
+      return jsonError('organizationId is derived from the authenticated session and cannot be changed.', 400, 'VALIDATION_ERROR');
+    }
+
+    const validation = leadSchema.partial().safeParse(rawBody);
     if (!validation.success) {
-      return NextResponse.json({ errors: validation.error.flatten() }, { status: 400 });
+      return jsonError(validation.error.issues[0]?.message || 'Lead data is invalid.', 422, 'VALIDATION_ERROR');
     }
 
-    try {
-      await connectToDatabase();
-      const updated = await Lead.findByIdAndUpdate(
-        id,
-        { ...validation.data, updatedAt: new Date() },
-        { new: true }
-      )
-        .populate('assignedToId', 'name email role avatarUrl')
-        .lean();
-
-      if (!updated) {
-        return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
-      }
-
-      return NextResponse.json({
-        id: updated._id.toString(),
-        ...updated,
-      });
-    } catch {
-      return NextResponse.json({
-        id,
-        ...validation.data,
-        updatedAt: new Date(),
-      });
+    const assignedToId = validation.data.assignedToId;
+    if (assignedToId && !mongoose.isValidObjectId(assignedToId)) {
+      return jsonError('Assigned user id is invalid.', 400, 'VALIDATION_ERROR');
     }
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to update lead' }, { status: 500 });
+
+    const update: Record<string, unknown> = { ...validation.data };
+    if (validation.data.name !== undefined) update.name = validation.data.name.trim();
+    if (validation.data.company !== undefined) update.company = validation.data.company?.trim() || null;
+    if (validation.data.email !== undefined) update.email = validation.data.email?.trim() || null;
+    if (validation.data.phone !== undefined) update.phone = validation.data.phone?.trim() || null;
+    if (validation.data.notes !== undefined) update.notes = validation.data.notes?.trim() || null;
+    if (validation.data.source !== undefined) update.source = validation.data.source?.trim() || null;
+    if (validation.data.nextFollowUp !== undefined && validation.data.nextFollowUp) update.nextFollowUp = new Date(validation.data.nextFollowUp);
+    if (validation.data.assignedToId !== undefined) {
+      update.assignedToId = assignedToId ? new mongoose.Types.ObjectId(assignedToId) : null;
+    }
+
+    await connectToDatabase();
+    const updatedLead = await Lead.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id), organizationId: new mongoose.Types.ObjectId(currentUser.organizationId) },
+      { $set: update },
+      { new: true }
+    ).lean();
+
+    if (!updatedLead) {
+      return jsonError('Lead not found in the current organization.', 404, 'NOT_FOUND');
+    }
+
+    return NextResponse.json({ success: true, data: serializeLead(updatedLead) });
+  } catch (error) {
+    const statusCode = (error as Error & { statusCode?: number }).statusCode ?? 500;
+    const message = error instanceof Error ? error.message : 'Failed to update lead.';
+    return jsonError(message, statusCode, statusCode === 401 ? 'UNAUTHORIZED' : statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_ERROR');
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    try {
-      await connectToDatabase();
-      await Lead.findByIdAndDelete(id);
-    } catch {
-      // Graceful delete confirmation
+    const currentUser = await requireAuth();
+    const { id } = await params;
+
+    if (!canManageLeads(currentUser.role)) {
+      return jsonError('You do not have permission to delete leads.', 403, 'FORBIDDEN');
     }
-    return NextResponse.json({ success: true, id });
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to delete lead' }, { status: 500 });
+
+    if (!currentUser.organizationId || !mongoose.isValidObjectId(currentUser.organizationId)) {
+      return jsonError('Organization context is missing or invalid.', 401, 'UNAUTHORIZED');
+    }
+
+    if (!mongoose.isValidObjectId(id)) {
+      return jsonError('Lead id is invalid.', 400, 'VALIDATION_ERROR');
+    }
+
+    await connectToDatabase();
+    const result = await Lead.deleteOne({
+      _id: new mongoose.Types.ObjectId(id),
+      organizationId: new mongoose.Types.ObjectId(currentUser.organizationId),
+    });
+
+    if (result.deletedCount === 0) {
+      return jsonError('Lead not found in the current organization.', 404, 'NOT_FOUND');
+    }
+
+    return NextResponse.json({ success: true, data: { id } });
+  } catch (error) {
+    const statusCode = (error as Error & { statusCode?: number }).statusCode ?? 500;
+    const message = error instanceof Error ? error.message : 'Failed to delete lead.';
+    return jsonError(message, statusCode, statusCode === 401 ? 'UNAUTHORIZED' : statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_ERROR');
   }
 }

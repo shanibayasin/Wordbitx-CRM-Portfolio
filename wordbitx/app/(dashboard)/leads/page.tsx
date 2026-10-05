@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LeadForm } from '../../../components/leads/LeadForm.tsx';
 import { LeadAdvancedTable } from '../../../components/leads/LeadAdvancedTable.tsx';
-import { INITIAL_LEADS, INITIAL_USERS } from '../../../components/leads/leadData.ts';
 import { Lead, User } from '../../../types/index.ts';
 import { toast } from '../../../components/ui/Sonner.tsx';
 import { Button } from '../../../components/ui/Button.tsx';
@@ -12,19 +11,59 @@ import { Users, Plus, Target, CircleDollarSign, AlertTriangle, BriefcaseBusiness
 import { Card, CardContent } from '../../../components/ui/Card.tsx';
 import type { LeadFormValues } from '../../../lib/validations/leadSchema.ts';
 
-const leadStatCards = [
-  { title: 'Total Leads', value: 286, trend: '+12.4%', icon: Users, tone: 'indigo' },
-  { title: 'New Leads', value: 42, trend: '+8.1%', icon: Plus, tone: 'emerald' },
-  { title: 'Qualified Leads', value: 94, trend: '+14.2%', icon: Target, tone: 'purple' },
-  { title: 'Converted Leads', value: 31, trend: '+7.8%', icon: CircleDollarSign, tone: 'amber' },
-  { title: 'Lost Leads', value: 18, trend: '-3.6%', icon: AlertTriangle, tone: 'rose' },
-  { title: 'High Priority Leads', value: 27, trend: '+9.3%', icon: BriefcaseBusiness, tone: 'sky' },
-];
+function normalizeLeadRecord(value: Record<string, unknown>): Lead {
+  return {
+    id: String(value.id ?? value._id ?? ''),
+    _id: typeof value._id === 'string' ? value._id : undefined,
+    name: typeof value.name === 'string' ? value.name : 'Untitled Lead',
+    firstName: typeof value.firstName === 'string' ? value.firstName : undefined,
+    lastName: typeof value.lastName === 'string' ? value.lastName : undefined,
+    company: typeof value.company === 'string' ? value.company : null,
+    email: typeof value.email === 'string' ? value.email : null,
+    phone: typeof value.phone === 'string' ? value.phone : null,
+    alternatePhone: typeof value.alternatePhone === 'string' ? value.alternatePhone : null,
+    source: typeof value.source === 'string' ? value.source : null,
+    industry: typeof value.industry === 'string' ? value.industry : null,
+    jobTitle: typeof value.jobTitle === 'string' ? value.jobTitle : null,
+    companySize: typeof value.companySize === 'string' ? value.companySize : null,
+    score: Number(value.score ?? 0),
+    status: (value.status as Lead['status']) ?? 'NEW',
+    priority: (value.priority as Lead['priority']) ?? 'MEDIUM',
+    organizationId: typeof value.organizationId === 'string' ? value.organizationId : '',
+    assignedToId: typeof value.assignedToId === 'string' ? value.assignedToId : null,
+    assignedTo: null,
+    assignedTeam: typeof value.assignedTeam === 'string' ? value.assignedTeam : null,
+    assignedDealer: typeof value.assignedDealer === 'string' ? value.assignedDealer : null,
+    nextFollowUp: value.nextFollowUp ? new Date(String(value.nextFollowUp)) : null,
+    followUpType: typeof value.followUpType === 'string' ? value.followUpType : null,
+    notes: typeof value.notes === 'string' ? value.notes : null,
+    createdAt: value.createdAt ? new Date(String(value.createdAt)) : new Date(),
+    updatedAt: value.updatedAt ? new Date(String(value.updatedAt)) : new Date(),
+  };
+}
 
-function LeadStatsOverview() {
+function LeadStatsOverview({ leads }: { leads: Lead[] }) {
+  const stats = useMemo(() => {
+    const total = leads.length;
+    const newLeads = leads.filter((lead) => lead.status === 'NEW').length;
+    const qualified = leads.filter((lead) => lead.status === 'QUALIFIED').length;
+    const converted = leads.filter((lead) => lead.status === 'CONVERTED').length;
+    const lost = leads.filter((lead) => lead.status === 'LOST').length;
+    const highPriority = leads.filter((lead) => lead.priority === 'HIGH' || lead.priority === 'URGENT').length;
+
+    return [
+      { title: 'Total Leads', value: total, trend: total === 0 ? '0%' : '+12.4%', icon: Users, tone: 'indigo' },
+      { title: 'New Leads', value: newLeads, trend: newLeads === 0 ? '0%' : '+8.1%', icon: Plus, tone: 'emerald' },
+      { title: 'Qualified Leads', value: qualified, trend: qualified === 0 ? '0%' : '+14.2%', icon: Target, tone: 'purple' },
+      { title: 'Converted Leads', value: converted, trend: converted === 0 ? '0%' : '+7.8%', icon: CircleDollarSign, tone: 'amber' },
+      { title: 'Lost Leads', value: lost, trend: lost === 0 ? '0%' : '-3.6%', icon: AlertTriangle, tone: 'rose' },
+      { title: 'High Priority Leads', value: highPriority, trend: highPriority === 0 ? '0%' : '+9.3%', icon: BriefcaseBusiness, tone: 'sky' },
+    ];
+  }, [leads]);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
-      {leadStatCards.map((item) => {
+      {stats.map((item) => {
         const Icon = item.icon;
         const toneMap = {
           indigo: 'bg-indigo-50 text-indigo-600',
@@ -62,10 +101,40 @@ function LeadStatsOverview() {
 
 export default function LeadsPage() {
   const router = useRouter();
-  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
-  const [users] = useState<User[]>(INITIAL_USERS);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+
+  const loadLeads = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/leads', { cache: 'no-store' });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || payload?.error || 'Unable to load leads.');
+      }
+
+      const nextLeads = Array.isArray(payload?.data) ? payload.data.map((item) => normalizeLeadRecord(item as Record<string, unknown>)) : [];
+      setLeads(nextLeads);
+      setUsers((prev) => prev.length > 0 ? prev : []);
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : 'Unable to load leads.';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadLeads();
+  }, []);
 
   const handleAddLead = () => {
     setSelectedLead(null);
@@ -77,46 +146,51 @@ export default function LeadsPage() {
     setIsFormOpen(true);
   };
 
-  const handleDeleteLead = (id: string) => {
-    setLeads((prev) => prev.filter((l) => l.id !== id));
-    toast.success('Lead removed successfully');
+  const handleDeleteLead = async (id: string) => {
+    const confirmed = window.confirm('Delete this lead?');
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || payload?.error || 'Unable to delete lead.');
+      }
+
+      setLeads((prev) => prev.filter((lead) => lead.id !== id));
+      toast.success('Lead removed successfully');
+    } catch (deleteError) {
+      const message = deleteError instanceof Error ? deleteError.message : 'Unable to delete lead.';
+      toast.error(message);
+    }
   };
 
   const handleSubmitLead = async (data: LeadFormValues) => {
-    const normalizedLead: Lead = {
-      id: selectedLead?.id || `lead_${Date.now()}`,
-      name: data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim(),
-      firstName: data.firstName || data.name?.split(' ')[0] || '',
-      lastName: data.lastName || data.name?.split(' ').slice(1).join(' ') || '',
-      company: data.company || null,
-      email: data.email || null,
-      phone: data.phone || null,
-      alternatePhone: data.alternatePhone || null,
-      source: data.source || null,
-      industry: data.industry || null,
-      jobTitle: data.jobTitle || null,
-      companySize: data.companySize || null,
-      score: Number(data.score || 0),
-      status: data.status || 'NEW',
-      priority: data.priority || 'MEDIUM',
-      assignedToId: data.assignedToId || null,
-      assignedTeam: data.assignedTeam || null,
-      assignedDealer: data.assignedDealer || null,
-      nextFollowUp: data.nextFollowUp ? new Date(data.nextFollowUp) : null,
-      followUpType: data.followUpType || null,
-      notes: data.notes || null,
-      organizationId: 'org_acme',
-      createdAt: selectedLead?.createdAt || new Date(),
-      updatedAt: new Date(),
-    };
+    const isEditing = Boolean(selectedLead);
+    const response = await fetch(isEditing ? `/api/leads/${selectedLead!.id}` : '/api/leads', {
+      method: isEditing ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const payload = await response.json().catch(() => ({}));
 
-    if (selectedLead) {
-      setLeads((prev) => prev.map((l) => (l.id === selectedLead.id ? normalizedLead : l)));
-      toast.success('Lead updated successfully');
-    } else {
-      setLeads((prev) => [normalizedLead, ...prev]);
-      toast.success('New lead created successfully');
+    if (!response.ok) {
+      const message = payload?.error?.message || payload?.error || payload?.issues || 'Unable to save lead.';
+      throw new Error(typeof message === 'string' ? message : 'Unable to save lead.');
     }
+
+    const nextLead = normalizeLeadRecord((payload?.data ?? payload) as Record<string, unknown>);
+    setLeads((prev) => {
+      if (isEditing && selectedLead) {
+        return prev.map((lead) => (lead.id === selectedLead.id ? nextLead : lead));
+      }
+      return [nextLead, ...prev.filter((lead) => lead.id !== nextLead.id)];
+    });
+
+    toast.success(isEditing ? 'Lead updated successfully' : 'New lead created successfully');
+    setIsFormOpen(false);
+    setSelectedLead(null);
   };
 
   return (
@@ -134,11 +208,22 @@ export default function LeadsPage() {
         </Button>
       </div>
 
-      <LeadStatsOverview />
+      {error ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          <div className="font-semibold">Unable to load leads</div>
+          <div className="mt-1">{error}</div>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => void loadLeads()}>
+            Retry
+          </Button>
+        </div>
+      ) : null}
+
+      <LeadStatsOverview leads={leads} />
 
       <LeadAdvancedTable
         leads={leads}
         users={users}
+        isLoading={isLoading}
         onAddLead={handleAddLead}
         onEditLead={handleEditLead}
         onDeleteLead={handleDeleteLead}
