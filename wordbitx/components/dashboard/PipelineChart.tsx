@@ -37,37 +37,43 @@ export function PipelineChart({ data }: PipelineChartProps) {
       </CardHeader>
       <CardContent className="pt-2 sm:pt-4 px-2 sm:px-6">
         <div className="h-60 sm:h-72 w-full min-w-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 15, left: -5, bottom: 5 }}>
-              <XAxis type="number" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
-              <YAxis
-                type="category"
-                dataKey="stage"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: '#64748b', fontSize: 10 }}
-                width={78}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  borderRadius: '8px',
-                  border: 'none',
-                  color: '#fff',
-                  fontSize: '12px',
-                }}
-                formatter={(value, _name, item) => [
-                  `${value} Deals (${formatCurrency(Number(item.payload.totalValue))})`,
-                  'Stage Volume',
-                ]}
-              />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={STAGE_COLORS[entry.stage] || '#6366f1'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {data.every((entry) => entry.count === 0) ? (
+            <div className="flex h-full items-center justify-center text-sm text-slate-500">
+              No deals have been added to the pipeline.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} layout="vertical" margin={{ top: 5, right: 15, left: -5, bottom: 5 }}>
+                <XAxis type="number" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
+                <YAxis
+                  type="category"
+                  dataKey="stage"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#64748b', fontSize: 10 }}
+                  width={78}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    borderRadius: '8px',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '12px',
+                  }}
+                  formatter={(value, _name, item) => [
+                    `${value} Deals (${formatCurrency(Number(item.payload.totalValue))})`,
+                    'Stage Volume',
+                  ]}
+                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={STAGE_COLORS[entry.stage] || '#6366f1'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>

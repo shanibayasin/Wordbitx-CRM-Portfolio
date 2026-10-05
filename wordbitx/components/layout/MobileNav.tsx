@@ -8,6 +8,7 @@ import {
   Ticket,
   Menu,
 } from 'lucide-react';
+import { normalizeDashboardPath } from '../../lib/utils.ts';
 
 interface MobileNavProps {
   currentPath: string;
@@ -16,6 +17,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ currentPath, onNavigate, onOpenMenu }: MobileNavProps) {
+  const normalizedCurrentPath = normalizeDashboardPath(currentPath);
   const tabs = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Leads', path: '/dashboard/leads', icon: Users },
@@ -32,7 +34,8 @@ export function MobileNav({ currentPath, onNavigate, onOpenMenu }: MobileNavProp
     >
       {tabs.map((tab) => {
         const Icon = tab.icon;
-        const isActive = currentPath === tab.path || currentPath.startsWith(tab.path + '/');
+        const tabPath = normalizeDashboardPath(tab.path);
+        const isActive = normalizedCurrentPath === tabPath || normalizedCurrentPath.startsWith(tabPath + '/');
         return (
           <button
             key={tab.path}

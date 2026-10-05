@@ -37,7 +37,7 @@ export const FinalCtaSection: React.FC = () => {
               className="bg-emerald-400 text-[#0b1f1b] hover:bg-emerald-300 border-emerald-400 font-bold shadow-lg shadow-emerald-950/30"
               iconRight={<ArrowRight className="w-4 h-4 text-[#0b1f1b]" />}
             >
-              Preview signup flow
+              Create a free workspace
             </Button>
 
             <Button
@@ -60,7 +60,7 @@ export const FinalCtaSection: React.FC = () => {
           </div>
 
           <p className="pt-2 text-xs text-emerald-200/70">
-            Portfolio preview only · Account creation and demo requests are not connected to a backend.
+            Portfolio preview · Workspace signup creates a real account; demo requests are not submitted.
           </p>
         </div>
       </div>

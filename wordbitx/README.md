@@ -27,9 +27,9 @@ The public marketing website remains a separate application. Its sign-in and sig
 
 ## Current data behavior
 
-This migration preserves the existing frontend data behavior; it does not connect the CRM UI to MongoDB. Seed data and most record edits live in the running browser session. Customers, deals, and orders are also read from and written to browser `localStorage`. Existing API handlers, Mongoose models, authentication configuration, and upload integrations remain in the repository for later integration work.
+The authenticated dashboard metrics are loaded from `/api/dashboard-stats` and calculated from the signed-in user's MongoDB organization. The endpoint returns real lead, customer, deal, revenue, call, task, ticket, pipeline, and activity data; it does not fall back to sample metrics when the database is empty or unavailable.
 
-Do not treat the demo login/register flow or browser-local data as production authentication or shared CRM persistence.
+Other CRM screens are at different integration stages: Leads use the authenticated API, while several other screens still use illustrative seed data or browser `localStorage`. Do not treat browser-local data as shared CRM persistence.
 
 ## Project layout
 

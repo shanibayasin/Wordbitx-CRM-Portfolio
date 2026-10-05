@@ -2,42 +2,75 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Building, CheckCircle2, Lock, Mail, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { ArrowRight, Building, Lock, Mail, User } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { useNavigation } from '../context/NavigationContext';
 
 export const SignupPage: React.FC = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     companyName: '',
-    workspaceSlug: '',
-    teamSize: '5-20',
-    role: 'Founder / Executive'
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isCreated, setIsCreated] = useState(false);
-  const { navigate } = useNavigation();
+  const [error, setError] = useState('');
 
-  const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    const slug = val.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-    setFormData({
-      ...formData,
-      companyName: val,
-      workspaceSlug: slug
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
     setIsLoading(true);
-    setTimeout(() => {
+    let workspaceCreated = false;
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          companyName: formData.companyName,
+        }),
+      });
+      const result = await response.json().catch(() => null) as
+        | { success?: boolean; error?: string; fieldErrors?: Record<string, string[]> }
+        | null;
+
+      if (!response.ok || !result?.success) {
+        const fieldErrors = Object.values(result?.fieldErrors ?? {}).flat();
+        setError(fieldErrors.join(' ') || result?.error || 'Unable to create your workspace. Please try again.');
+        return;
+      }
+
+      workspaceCreated = true;
+      const signInResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+        callbackUrl: '/dashboard',
+      });
+
+      if (!signInResult?.ok) {
+        setError('Your workspace was created, but automatic sign-in failed. Please use Sign in to continue.');
+        return;
+      }
+
+      router.replace('/dashboard');
+      router.refresh();
+    } catch (signupError) {
+      console.error('Workspace signup request failed', signupError);
+      setError(
+        workspaceCreated
+          ? 'Your workspace was created, but automatic sign-in failed. Please use Sign in to continue.'
+          : 'Unable to reach the signup service. Please try again.'
+      );
+    } finally {
       setIsLoading(false);
-      setIsCreated(true);
-    }, 800);
+    }
   };
 
   return (
@@ -52,63 +85,18 @@ export const SignupPage: React.FC = () => {
             Create your WordbitX Workspace
           </h1>
           <p className="text-xs text-slate-500">
-            Preview the signup flow. No account is created and no information is transmitted.
+            Create a workspace and administrator account to get started.
           </p>
         </div>
 
         {/* Signup Card */}
         <div className="bg-white dark:bg-[#0b1f1b] rounded-2xl border border-slate-200/80 dark:border-[#183932] shadow-xl p-6 sm:p-8">
-          {isCreated ? (
-            <div className="py-8 text-center space-y-5 animate-in fade-in duration-200">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-[#122e28] text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-xs border border-emerald-100 dark:border-[#1e483e]">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                  Workspace setup preview complete
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                  This site preview does not create accounts or workspaces. No workspace was created.
-                </p>
-              </div>
-
-              <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Link
-                  href="/dashboard"
-                  className="w-full sm:w-auto"
-                >
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="w-full sm:w-auto bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
-                    iconRight={<ArrowRight className="w-4 h-4" />}
-                  >
-                    Open CRM Preview
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => navigate('/')}
-                  className="w-full sm:w-auto"
-                >
-                  Return to Home
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Preview form only. Submitting does not create an account or transmit your information.
-                {' '}
-                <Link
-                  href="/dashboard"
-                  className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
-                >
-                  Open the interactive CRM preview
-                </Link>
-                .
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {error && (
+              <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+                {error}
               </p>
+            )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -120,9 +108,12 @@ export const SignupPage: React.FC = () => {
                       type="text"
                       aria-label="Full name"
                       required
+                      minLength={2}
+                      maxLength={120}
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       placeholder="Alex Morgan"
+                      disabled={isLoading}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                     />
                   </div>
@@ -138,9 +129,11 @@ export const SignupPage: React.FC = () => {
                       type="email"
                       aria-label="Work email"
                       required
+                      maxLength={254}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="alex@company.com"
+                      disabled={isLoading}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                     />
                   </div>
@@ -157,10 +150,13 @@ export const SignupPage: React.FC = () => {
                     type="password"
                     aria-label="Password"
                     required
-                    minLength={8}
+                    minLength={12}
+                    maxLength={128}
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="At least 8 characters"
+                    placeholder="At least 12 characters"
+                    disabled={isLoading}
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
@@ -177,66 +173,21 @@ export const SignupPage: React.FC = () => {
                       type="text"
                       aria-label="Company name"
                       required
+                      minLength={2}
+                      maxLength={120}
                       value={formData.companyName}
-                      onChange={handleCompanyChange}
+                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                       placeholder="ABC Technologies"
+                      disabled={isLoading}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                     />
                   </div>
                 </div>
-
-                <div>
-                  <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Your Role
-                  </label>
-                  <select
-                    aria-label="Your role"
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
-                  >
-                    <option>Founder / Executive</option>
-                    <option>Head of Sales</option>
-                    <option>Call Center Lead</option>
-                    <option>Customer Support Manager</option>
-                    <option>Agency Account Lead</option>
-                  </select>
-                </div>
               </div>
 
-              {/* Workspace URL Slug Preview */}
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Workspace URL Domain (Tenant Identifier)
-                </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-[#183932] bg-slate-50 dark:bg-[#0e2722] px-3 py-2 text-xs font-mono">
-                  <span className="text-slate-400">app.wordbitx.com/</span>
-                  <input
-                    type="text"
-                    aria-label="Workspace URL domain"
-                    value={formData.workspaceSlug}
-                    onChange={(e) => setFormData({ ...formData, workspaceSlug: e.target.value })}
-                    placeholder="my-workspace"
-                    className="bg-transparent text-emerald-700 dark:text-emerald-400 font-semibold focus:outline-none flex-1 ml-1"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Estimated Team Size
-                </label>
-                <select
-                  value={formData.teamSize}
-                  onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
-                >
-                  <option value="1-5">1 – 5 Users</option>
-                  <option value="5-20">5 – 20 Users</option>
-                  <option value="20-50">20 – 50 Users</option>
-                  <option value="50+">50+ Enterprise</option>
-                </select>
-              </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Your password must be at least 12 characters long.
+            </p>
 
               <div className="pt-2">
                 <Button
@@ -244,25 +195,24 @@ export const SignupPage: React.FC = () => {
                   variant="primary"
                   size="lg"
                   isLoading={isLoading}
+                  disabled={isLoading}
                   className="w-full justify-center bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
                   iconRight={<ArrowRight className="w-4 h-4" />}
                 >
-                  Preview Workspace Setup
+                  {isLoading ? 'Creating Workspace…' : 'Start Free'}
                 </Button>
               </div>
 
               <div className="pt-4 border-t border-slate-100 dark:border-[#183932] text-center text-xs text-slate-500">
                 Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => navigate('/login')}
+                <Link
+                  href="/login"
                   className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
                 >
                   Sign in
-                </button>
+                </Link>
               </div>
-            </form>
-          )}
+          </form>
         </div>
       </div>
     </div>

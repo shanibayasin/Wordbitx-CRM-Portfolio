@@ -348,15 +348,26 @@ export interface Task {
 }
 
 export interface DashboardStats {
+  workspace: {
+    organizationId: string;
+    organizationName: string | null;
+    user: {
+      name: string | null;
+      email: string | null;
+      role: string | null;
+    };
+  };
   totalLeads: number;
-  openDealsCount: number;
-  openDealsValue: number;
-  openTickets: number;
+  totalContacts: number;
+  activeDealsCount: number;
+  activeDealsValue: number;
+  revenueTotal: number;
+  closedDealsCount: number;
+  wonDealsCount: number;
+  averageDealSize: number;
+  callsCount: number;
   tasksDueToday: number;
-  leadsGrowth: number;
-  dealsGrowth: number;
-  ticketsChange: number;
-  tasksCompletedPercentage: number;
+  conversionRate: number;
   monthlyRevenue: {
     month: string;
     revenue: number;
@@ -367,13 +378,28 @@ export interface DashboardStats {
     count: number;
     totalValue: number;
   }[];
-  recentActivity: {
+  recentDeals: {
     id: string;
-    type: 'deal' | 'lead' | 'ticket' | 'task';
+    title: string;
+    value: number;
+    stage: DealStage;
+    updatedAt: string;
+  }[];
+  urgentTickets: {
+    id: string;
+    subject: string;
+    priority: Priority;
+    customer: string | null;
+    updatedAt: string;
+  }[];
+  recentActivities: {
+    id: string;
+    type: 'deal' | 'call' | 'note' | 'order' | 'lead';
     title: string;
     description: string;
-    time: string;
-    user?: string;
+    user: string | null;
+    occurredAt: string;
+    href: string;
   }[];
 }
 

@@ -3,7 +3,7 @@ import { DemoPage } from '../../site-pages/DemoPage';
 
 export const metadata: Metadata = {
   title: 'WordbitX Demo',
-  description: 'Explore the WordbitX CRM demo and review the platform experience.',
+  description: 'Send a demo request to the WordbitX team and tell us what your team wants to explore.',
 };
 
 export default function Page() {

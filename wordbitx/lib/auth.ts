@@ -1,4 +1,7 @@
+import { headers } from 'next/headers';
+import { NextRequest } from 'next/server';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
+import { getToken } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import connectToDatabase from './mongodb.ts';
@@ -11,10 +14,24 @@ export type AuthenticatedSessionUser = {
   name?: string | null;
   role?: string;
   organizationId?: string;
+  organizationName?: string;
 };
 
+export async function getSafeServerSession() {
+  const requestHeaders = await headers();
+  const requestUrl = new URL('/api/auth/session', process.env.NEXTAUTH_URL ?? 'http://localhost');
+  const request = new NextRequest(requestUrl, { headers: requestHeaders });
+  const token = await getToken({ req: request, secret: authOptions.secret });
+
+  if (!token) {
+    return null;
+  }
+
+  return getServerSession(authOptions);
+}
+
 export async function getCurrentUser(): Promise<AuthenticatedSessionUser | null> {
-  const session = await getServerSession(authOptions);
+  const session = await getSafeServerSession();
   const user = session?.user;
 
   if (!user?.id || !user.organizationId) {
@@ -27,6 +44,7 @@ export async function getCurrentUser(): Promise<AuthenticatedSessionUser | null>
     name: user.name ?? null,
     role: user.role ?? undefined,
     organizationId: user.organizationId,
+    organizationName: user.organizationName ?? undefined,
   };
 }
 
@@ -64,7 +82,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please enter an email and password');
+          throw new Error('Invalid email or password');
         }
 
         try {
@@ -72,17 +90,17 @@ export const authOptions: NextAuthOptions = {
           const user = await User.findOne({ email: credentials.email.toLowerCase() });
 
           if (!user || !user.password) {
-            throw new Error('No user found with this email');
+            throw new Error('Invalid email or password');
           }
 
           const isPasswordMatch = await bcrypt.compare(credentials.password, user.password);
           if (!isPasswordMatch) {
-            throw new Error('Incorrect password');
+            throw new Error('Invalid email or password');
           }
 
           const organization = await Organization.findById(user.organizationId);
           if (!organization) {
-            throw new Error('The user organization could not be found');
+            throw new Error('Unable to authenticate at this time');
           }
 
           return {
@@ -95,8 +113,16 @@ export const authOptions: NextAuthOptions = {
             organizationName: organization.name,
           };
         } catch (error) {
-          if (error instanceof Error) throw error;
-          throw new Error('Authentication failed');
+          if (error instanceof Error && error.message === 'Invalid email or password') {
+            throw error;
+          }
+
+          const details = error as { name?: string; code?: string | number };
+          console.error('[auth] Credential authorization failed.', {
+            name: details?.name ?? 'Error',
+            code: details?.code ?? 'unavailable',
+          });
+          throw new Error('Unable to authenticate at this time');
         }
       },
     }),

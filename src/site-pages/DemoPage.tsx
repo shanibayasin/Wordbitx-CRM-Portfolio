@@ -3,23 +3,34 @@
 import React, { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { useNavigation } from '../context/NavigationContext';
+
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export const DemoPage: React.FC = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    teamSize: '5-20',
-    role: 'Head of Sales',
-    features: ['Sales Pipeline & Kanban', 'AI Follow-up Assistant'],
-    date: '2026-10-15',
-    notes: ''
+  const [formData, setFormData] = useState(() => {
+    const preferredDate = new Date();
+    preferredDate.setDate(preferredDate.getDate() + 7);
+
+    return {
+      name: '',
+      email: '',
+      company: '',
+      teamSize: '5-20',
+      role: 'Head of Sales',
+      features: ['Sales Pipeline & Kanban', 'AI Follow-up Assistant'],
+      date: formatLocalDate(preferredDate),
+      notes: '',
+    };
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
-  const { openExploreDemo } = useNavigation();
+  const [error, setError] = useState('');
 
   const handleFeatureToggle = (featureName: string) => {
     if (formData.features.includes(featureName)) {
@@ -35,13 +46,40 @@ export const DemoPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const response = await fetch('/api/public/demo-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          teamSize: formData.teamSize,
+          role: formData.role,
+          features: formData.features,
+          date: formData.date,
+          notes: formData.notes,
+        }),
+      });
+      const result = await response.json().catch(() => null) as { success?: boolean; error?: string } | null;
+
+      if (!response.ok || !result?.success) {
+        setError(result?.error || 'We could not send your demo request. Please try again.');
+        return;
+      }
+
       setIsBooked(true);
-    }, 700);
+    } catch (submitError) {
+      console.error('Demo request submission failed', submitError);
+      setError('Unable to reach the demo request service. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -67,10 +105,10 @@ export const DemoPage: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <h3 className="text-2xl font-bold font-display text-slate-900 dark:text-white">
-                  Demo request preview complete
+                  Demo request sent
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                  This site preview does not send demo requests or schedule meetings. No booking was made.
+                  Thanks, {formData.name}. Your request has been sent to our team. We&apos;ll follow up about your preferred date.
                 </p>
               </div>
 
@@ -80,18 +118,20 @@ export const DemoPage: React.FC = () => {
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button variant="primary" size="md" onClick={openExploreDemo} className="bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white">
-                  Explore the CRM application
-                </Button>
                 <Button variant="outline" size="md" onClick={() => setIsBooked(false)}>
-                  Modify Booking
+                  Send another request
                 </Button>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6 text-xs">
+              {error && (
+                <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+                  {error}
+                </p>
+              )}
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Preview form only. Submissions are not sent and do not reserve a demo time.
+                Send us your details and our team will follow up about your demo.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -106,6 +146,8 @@ export const DemoPage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g. Alex Morgan"
+                    maxLength={120}
+                    disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
@@ -121,6 +163,8 @@ export const DemoPage: React.FC = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="alex@company.com"
+                    maxLength={254}
+                    disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
@@ -138,6 +182,8 @@ export const DemoPage: React.FC = () => {
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                     placeholder="Company Inc."
+                    maxLength={120}
+                    disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
@@ -150,6 +196,7 @@ export const DemoPage: React.FC = () => {
                     aria-label="Team size"
                     value={formData.teamSize}
                     onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
+                    disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   >
                     <option value="1-5">1 – 5 Users</option>
@@ -169,6 +216,8 @@ export const DemoPage: React.FC = () => {
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     placeholder="e.g. Sales Director"
+                    maxLength={120}
+                    disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
@@ -194,6 +243,7 @@ export const DemoPage: React.FC = () => {
                         type="button"
                         key={feat}
                         onClick={() => handleFeatureToggle(feat)}
+                        disabled={isSubmitting}
                         className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between cursor-pointer ${
                           isChecked
                             ? 'bg-emerald-50 dark:bg-[#122e28] border-emerald-500 text-emerald-950 dark:text-emerald-200 font-semibold'
@@ -218,6 +268,8 @@ export const DemoPage: React.FC = () => {
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    min={formatLocalDate(new Date())}
+                    disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
@@ -231,6 +283,8 @@ export const DemoPage: React.FC = () => {
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Specific questions about phone systems or migrations..."
+                    maxLength={2000}
+                    disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
@@ -242,9 +296,10 @@ export const DemoPage: React.FC = () => {
                   variant="primary"
                   size="lg"
                   isLoading={isSubmitting}
+                  disabled={isSubmitting}
                   className="w-full justify-center bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
                 >
-                  Preview Demo Request
+                  {isSubmitting ? 'Sending demo request…' : 'Send Demo Request'}
                 </Button>
               </div>
             </form>

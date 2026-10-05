@@ -99,7 +99,7 @@ export const CommandPalette: React.FC = () => {
         id: 'act-signup',
         category: 'Quick Actions',
         title: 'Create Free Workspace (Sign Up)',
-        subtitle: 'Preview the signup flow; this site does not create an account',
+        subtitle: 'Create a workspace and administrator account',
         icon: <ArrowRight className="w-4 h-4 text-emerald-500" />,
         action: () => navigate('/signup')
       },

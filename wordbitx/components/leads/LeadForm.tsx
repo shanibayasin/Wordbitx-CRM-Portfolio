@@ -149,6 +149,9 @@ export function LeadForm({ open, onOpenChange, onSubmit, lead, users }: LeadForm
                 <option value="Referral">Client Referral</option>
                 <option value="Outbound">Cold Outbound</option>
                 <option value="Partner">Tech Partner</option>
+                {formData.source && !['Website', 'LinkedIn', 'Conference', 'Referral', 'Outbound', 'Partner'].includes(formData.source) && (
+                  <option value={formData.source}>{formData.source}</option>
+                )}
               </Select>
             </div>
             <div>
@@ -160,8 +163,12 @@ export function LeadForm({ open, onOpenChange, onSubmit, lead, users }: LeadForm
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as LeadStatus })}
               >
                 <option value="NEW">New</option>
+                <option value="CONTACTED">Contacted</option>
                 <option value="FOLLOW_UP">Follow Up</option>
                 <option value="QUALIFIED">Qualified</option>
+                <option value="PROPOSAL">Proposal</option>
+                <option value="NEGOTIATION">Negotiation</option>
+                <option value="CONVERTED">Converted</option>
                 <option value="LOST">Lost</option>
               </Select>
             </div>

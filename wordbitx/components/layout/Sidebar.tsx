@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { Badge } from '../ui/Badge.tsx';
+import { normalizeDashboardPath } from '../../lib/utils.ts';
 
 interface SidebarProps {
   currentPath: string;
@@ -56,6 +57,7 @@ export function Sidebar({
       onCloseMobile();
     }
   };
+  const normalizedCurrentPath = normalizeDashboardPath(currentPath);
 
   const sidebarContent = (
     <div className="flex flex-col h-full w-full">
@@ -105,7 +107,7 @@ export function Sidebar({
           <div className="flex items-center space-x-2 min-w-0">
             <Building className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
             <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
-              {user?.organizationName || 'Acme Technologies Inc.'}
+              {user ? user.organizationName || 'Workspace' : 'Acme Technologies Inc.'}
             </span>
           </div>
           <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 shrink-0">
@@ -118,7 +120,8 @@ export function Sidebar({
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/');
+          const itemPath = normalizeDashboardPath(item.path);
+          const isActive = normalizedCurrentPath === itemPath || normalizedCurrentPath.startsWith(itemPath + '/');
           return (
             <button
               key={item.path}
@@ -142,7 +145,7 @@ export function Sidebar({
             type="button"
             onClick={() => handleNavClick('/dashboard/settings/team')}
             className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
-              currentPath === '/dashboard/settings/team'
+              normalizedCurrentPath === normalizeDashboardPath('/dashboard/settings/team')
                 ? 'text-indigo-600 font-semibold dark:text-indigo-400'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
@@ -161,11 +164,15 @@ export function Sidebar({
               {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-800 dark:text-slate-100 truncate">{user?.name || 'User'}</p>
+              <p className="text-xs font-medium text-slate-800 dark:text-slate-100 truncate">
+                {user ? user.name || 'Loading…' : 'User'}
+              </p>
               <div className="flex items-center space-x-1.5">
-                <span className="text-[10px] text-slate-400 truncate max-w-[100px] sm:max-w-none">{user?.email || 'user@example.com'}</span>
+                <span className="text-[10px] text-slate-400 truncate max-w-[100px] sm:max-w-none">
+                  {user ? user.email : 'user@example.com'}
+                </span>
                 <span className="inline-block px-1 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">
-                  {user?.role || 'SALES'}
+                  {user ? user.role : 'SALES'}
                 </span>
               </div>
             </div>

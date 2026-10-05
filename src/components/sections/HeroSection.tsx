@@ -7,7 +7,7 @@ import { useNavigation } from '../../context/NavigationContext';
 import { HeroDashboardPreview } from './HeroDashboardPreview';
 
 export const HeroSection: React.FC = () => {
-  const { navigate, openExploreDemo } = useNavigation();
+  const { navigate } = useNavigation();
 
   return (
     <section className="relative pt-12 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-[#f5f8f6] dark:bg-[#071714]">
@@ -53,19 +53,11 @@ export const HeroSection: React.FC = () => {
               Book a Demo
             </Button>
 
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={openExploreDemo}
-              className="w-full sm:w-auto bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/80 hover:bg-emerald-100"
-            >
-              Explore CRM Preview
-            </Button>
           </div>
 
           {/* Preview disclosure */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400 pt-1">
-            <span>Portfolio preview · Signup and demo forms do not create accounts or send information</span>
+            <span>Portfolio preview · Start Free creates a real workspace; demo requests are not submitted</span>
           </div>
         </div>
 

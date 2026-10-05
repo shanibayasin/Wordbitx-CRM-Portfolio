@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getCurrentUser } from '../../../../wordbitx/lib/auth';
 import CRMApp from '../../../../wordbitx/src/App';
 
 export const metadata: Metadata = {
@@ -14,24 +15,14 @@ export default async function DashboardPage({
   params: Promise<{ segments?: string[] }>;
 }) {
   const { segments = [] } = await params;
+  const user = await getCurrentUser();
+
   if (segments.length === 1 && segments[0] === 'login') {
-    const crmAppUrl = process.env.CRM_APP_URL;
-    if (!crmAppUrl) {
-      throw new Error('CRM_APP_URL must be configured to direct users to CRM sign-in.');
-    }
+    redirect(user ? '/dashboard' : '/login');
+  }
 
-    let crmUrl: URL;
-    try {
-      crmUrl = new URL(crmAppUrl);
-    } catch {
-      throw new Error('CRM_APP_URL must be a valid absolute URL.');
-    }
-
-    if (crmUrl.protocol !== 'http:' && crmUrl.protocol !== 'https:') {
-      throw new Error('CRM_APP_URL must use HTTP or HTTPS.');
-    }
-
-    redirect(new URL('/login', crmUrl).toString());
+  if (!user) {
+    redirect('/login');
   }
 
   return <CRMApp />;

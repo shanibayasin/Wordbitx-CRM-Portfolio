@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import connectToDatabase from '../../../../lib/mongodb.ts';
 import { canManageLeads, canViewLeads, requireAuth } from '../../../../lib/auth.ts';
 import Lead from '../../../../models/Lead.ts';
+import User from '../../../../models/User.ts';
 import { leadSchema } from '../../../../lib/validations/leadSchema.ts';
 
 function jsonError(message: string, status: number, code = 'ERROR') {
@@ -92,6 +93,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return jsonError('Assigned user id is invalid.', 400, 'VALIDATION_ERROR');
     }
 
+    await connectToDatabase();
+    if (assignedToId) {
+      const assignedUser = await User.exists({
+        _id: new mongoose.Types.ObjectId(assignedToId),
+        organizationId: new mongoose.Types.ObjectId(currentUser.organizationId),
+      });
+      if (!assignedUser) {
+        return jsonError('Assigned user must belong to the current organization.', 422, 'VALIDATION_ERROR');
+      }
+    }
+
     const update: Record<string, unknown> = { ...validation.data };
     if (validation.data.name !== undefined) update.name = validation.data.name.trim();
     if (validation.data.company !== undefined) update.company = validation.data.company?.trim() || null;
@@ -104,7 +116,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       update.assignedToId = assignedToId ? new mongoose.Types.ObjectId(assignedToId) : null;
     }
 
-    await connectToDatabase();
     const updatedLead = await Lead.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(id), organizationId: new mongoose.Types.ObjectId(currentUser.organizationId) },
       { $set: update },

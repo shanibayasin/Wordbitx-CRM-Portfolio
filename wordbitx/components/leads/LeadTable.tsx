@@ -38,7 +38,9 @@ export function LeadTable({
       lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lead.email && lead.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (lead.phone && lead.phone.includes(searchTerm)) ||
-      (lead.source && lead.source.toLowerCase().includes(searchTerm.toLowerCase()));
+      (lead.company && lead.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (lead.source && lead.source.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (lead.notes && lead.notes.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus = statusFilter === 'ALL' || lead.status === statusFilter;
 
@@ -94,8 +96,12 @@ export function LeadTable({
             >
               <option value="ALL">All Statuses</option>
               <option value="NEW">New</option>
+              <option value="CONTACTED">Contacted</option>
               <option value="FOLLOW_UP">Follow Up</option>
               <option value="QUALIFIED">Qualified</option>
+              <option value="PROPOSAL">Proposal</option>
+              <option value="NEGOTIATION">Negotiation</option>
+              <option value="CONVERTED">Converted</option>
               <option value="LOST">Lost</option>
             </select>
           </div>
@@ -183,6 +189,12 @@ export function LeadTable({
                           <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                           <span>{lead.phone}</span>
                         </div>
+                      )}
+                      {lead.company && <div className="truncate">{lead.company}</div>}
+                      {lead.notes && (
+                        <p className="line-clamp-2 pt-1 text-[11px] text-slate-500 dark:text-slate-400" title={lead.notes}>
+                          {lead.notes}
+                        </p>
                       )}
                     </div>
 

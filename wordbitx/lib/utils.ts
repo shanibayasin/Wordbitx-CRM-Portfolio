@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function normalizeDashboardPath(path: string): string {
+  return path.replace(/^\/dashboard(?=\/|$)/, '') || '/dashboard';
+}
+
 export function createId(prefix: string): string {
   return `${prefix}_${crypto.randomUUID()}`;
 }

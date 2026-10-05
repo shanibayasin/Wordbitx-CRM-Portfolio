@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, type ReactNode } from 'react';
+import React, { useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from '../components/layout/Sidebar.tsx';
 import { Topbar } from '../components/layout/Topbar.tsx';
@@ -29,8 +29,11 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import {
   Users,
   DollarSign,
-  LifeBuoy,
   CheckSquare,
+  Building2,
+  PhoneCall,
+  Percent,
+  Activity as ActivityIcon,
   Kanban,
   Building,
   UserCheck,
@@ -54,6 +57,9 @@ import {
   Lock,
 } from 'lucide-react';
 import { createId, formatCurrency, formatDate } from '../lib/utils.ts';
+import { getDashboardStats } from '../lib/services/dashboardService.ts';
+import { createLead as createWorkspaceLead, deleteLead as deleteWorkspaceLead, getLeadAssignees, getLeads, updateLead } from '../lib/services/leadsService.ts';
+import { createWorkspaceDeal, deleteWorkspaceDeal, getPipelineWorkspace, type PipelineWorkspace, updateWorkspaceDeal, updateWorkspaceDeals } from '../lib/services/pipelineService.ts';
 import { useLocalStorageState } from '../lib/useLocalStorageState.ts';
 import type { CustomerFormValues } from '../lib/validations/customerSchema.ts';
 import type { DealFormValues } from '../lib/validations/dealSchema.ts';
@@ -71,6 +77,7 @@ import {
   DealStage,
   Order,
   Role,
+  DashboardStats,
 } from '../types/index.ts';
 
 // Initial Multi-Tenant Seed Data
@@ -138,10 +145,10 @@ export default function App({ children }: { children?: ReactNode }) {
     );
   }
 
-  return <LegacyPreviewApp />;
+  return <LegacyPreviewApp navigationBase={children === undefined ? '/dashboard' : ''} />;
 }
 
-function LegacyPreviewApp() {
+function LegacyPreviewApp({ navigationBase }: { navigationBase: '' | '/dashboard' }) {
   const pathname = usePathname();
   const router = useRouter();
   const crmPath = pathname.replace(/^\/dashboard(?=\/|$)/, '') || '/dashboard';
@@ -153,9 +160,96 @@ function LegacyPreviewApp() {
             : '/tickets/detail'
     : crmPath;
   const routeParam = activeView.endsWith('/detail') ? crmPath.split('/').pop() || null : null;
+  const isLeadsView = activeView === '/leads' || activeView === '/leads/detail';
+  const isPipelineView = activeView === '/pipeline' || activeView === '/deals/detail';
+  const isWorkspaceDataView = activeView === '/dashboard' || activeView === '/reports' || isLeadsView || isPipelineView;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [dashboardStatus, setDashboardStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [dashboardError, setDashboardError] = useState('');
+  const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
+  const [workspaceLeads, setWorkspaceLeads] = useState<Lead[] | null>(null);
+  const [leadAssignees, setLeadAssignees] = useState<User[]>([]);
+  const [leadsStatus, setLeadsStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [leadsError, setLeadsError] = useState('');
+  const [leadsReloadKey, setLeadsReloadKey] = useState(0);
+  const [pipelineWorkspace, setPipelineWorkspace] = useState<PipelineWorkspace | null>(null);
+  const [pipelineStatus, setPipelineStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [pipelineError, setPipelineError] = useState('');
+  const [pipelineReloadKey, setPipelineReloadKey] = useState(0);
+
+  useEffect(() => {
+    if (!isWorkspaceDataView) return;
+
+    const controller = new AbortController();
+    void getDashboardStats(controller.signal)
+      .then((stats) => {
+        setDashboardStats(stats);
+        setDashboardStatus('ready');
+        setDashboardError('');
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        const message = error instanceof Error ? error.message : 'Unable to load dashboard metrics.';
+        setDashboardError(message);
+        setDashboardStatus('error');
+      });
+
+    return () => controller.abort();
+  }, [activeView, dashboardReloadKey, isWorkspaceDataView]);
+
+  useEffect(() => {
+    if (!isLeadsView) return;
+
+    const controller = new AbortController();
+    void Promise.resolve()
+      .then(() => {
+        if (controller.signal.aborted) return null;
+        setLeadsStatus('loading');
+        return Promise.all([getLeads(controller.signal), getLeadAssignees(controller.signal)]);
+      })
+      .then((workspaceData) => {
+        if (!workspaceData) return;
+        const [loadedLeads, loadedAssignees] = workspaceData;
+        setWorkspaceLeads(loadedLeads);
+        setLeadAssignees(loadedAssignees);
+        setLeadsStatus('ready');
+        setLeadsError('');
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        const message = error instanceof Error ? error.message : 'Unable to load workspace leads.';
+        setWorkspaceLeads([]);
+        setLeadAssignees([]);
+        setLeadsError(message);
+        setLeadsStatus('error');
+      });
+
+    return () => controller.abort();
+  }, [activeView, isLeadsView, leadsReloadKey]);
+
+  useEffect(() => {
+    if (!isPipelineView) return;
+
+    const controller = new AbortController();
+    setPipelineStatus('loading');
+    void getPipelineWorkspace(controller.signal)
+      .then((workspace) => {
+        setPipelineWorkspace(workspace);
+        setPipelineStatus('ready');
+        setPipelineError('');
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setPipelineWorkspace(null);
+        setPipelineError(error instanceof Error ? error.message : 'Unable to load pipeline workspace.');
+        setPipelineStatus('error');
+      });
+
+    return () => controller.abort();
+  }, [activeView, isPipelineView, pipelineReloadKey]);
 
   // Multi-Tenancy State
   const [organizations] = useState<Organization[]>(SEED_ORGS);
@@ -196,21 +290,31 @@ function LegacyPreviewApp() {
 
   // Filter scoped data by current logged-in organization
   const scopedLeads = leads.filter((l) => l.organizationId === currentOrgId);
+  const displayedLeads = isLeadsView ? workspaceLeads ?? [] : scopedLeads;
   const scopedDeals = deals.filter((d) => d.organizationId === currentOrgId);
   const scopedCustomers = customers.filter((c) => c.organizationId === currentOrgId);
   const scopedTickets = tickets.filter((t) => t.organizationId === currentOrgId);
   const scopedTasks = tasks.filter((t) => t.organizationId === currentOrgId);
   const scopedOrders = orders.filter((order) => order.organizationId === currentOrgId);
   const scopedUsers = users.filter((u) => u.organizationId === currentOrgId);
+  const pipelineDeals = pipelineWorkspace?.deals ?? [];
+  const pipelineCustomers = pipelineWorkspace?.customers ?? [];
+  const pipelineUsers = pipelineWorkspace?.users ?? [];
+  const displayedDeals = isPipelineView ? pipelineDeals : scopedDeals;
+  const displayedCustomers = isPipelineView ? pipelineCustomers : scopedCustomers;
+  const displayedUsers = isPipelineView ? pipelineUsers : scopedUsers;
+  const pipelineCurrentUser = pipelineUsers.find((user) => user.id === pipelineWorkspace?.currentUserId) || currentUser;
 
   // Navigate helper
   const navigate = (path: string, param?: string) => {
     const crmRelativePath = path.endsWith('/detail') && param
       ? `${path.slice(0, -'/detail'.length)}/${encodeURIComponent(param)}`
       : path;
-    const targetPath = crmRelativePath === '/dashboard' || crmRelativePath.startsWith('/dashboard/')
-      ? crmRelativePath
-      : `/dashboard${crmRelativePath === '/' ? '' : crmRelativePath}`;
+    const targetPath = crmRelativePath === '/dashboard'
+      ? '/dashboard'
+      : crmRelativePath.startsWith('/dashboard/')
+        ? `${navigationBase}${crmRelativePath.slice('/dashboard'.length)}`
+        : `${navigationBase}${crmRelativePath === '/' ? '' : crmRelativePath}` || '/dashboard';
     router.push(targetPath);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -228,37 +332,71 @@ function LegacyPreviewApp() {
   // Leads
   const handleSaveLead = async (data: LeadFormValues) => {
     if (selectedLead) {
+      const updatedLead = isLeadsView
+        ? await updateLead(selectedLead.id, data)
+        : { ...selectedLead, ...data, updatedAt: new Date() };
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === selectedLead.id ? { ...l, ...data, updatedAt: new Date() } : l
+          l.id === selectedLead.id ? { ...l, ...updatedLead } : l
         )
       );
+      if (isLeadsView) {
+        setWorkspaceLeads((prev) => prev?.map((lead) => lead.id === updatedLead.id ? updatedLead : lead) ?? null);
+      }
       toast.success('Lead updated successfully');
     } else {
-      const newLead: Lead = {
-        id: createId('lead'),
-        ...data,
-        email: data.email || null,
-        phone: data.phone || null,
-        source: data.source || null,
-        assignedToId: data.assignedToId || null,
-        organizationId: currentOrgId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const newLead = isLeadsView
+        ? await createWorkspaceLead(data)
+        : {
+          id: createId('lead'),
+          ...data,
+          email: data.email || null,
+          phone: data.phone || null,
+          source: data.source || null,
+          assignedToId: data.assignedToId || null,
+          organizationId: currentOrgId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
       setLeads((prev) => [newLead, ...prev]);
+      if (isLeadsView) {
+        setWorkspaceLeads((prev) => [newLead, ...(prev ?? [])]);
+      }
       toast.success('New lead captured into pipeline');
     }
     setIsLeadModalOpen(false);
   };
 
-  const handleDeleteLead = (id: string) => {
+  const handleDeleteLead = async (id: string) => {
+    if (isLeadsView) {
+      try {
+        await deleteWorkspaceLead(id);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Unable to delete this lead.');
+        return;
+      }
+      setWorkspaceLeads((prev) => prev?.filter((lead) => lead.id !== id) ?? null);
+    }
     setLeads((prev) => prev.filter((l) => l.id !== id));
     toast.success('Lead removed from repository');
   };
 
   // Deals
-  const handleUpdateDealStage = (dealId: string, newStage: DealStage, change?: { lossReason?: string; lossNotes?: string; customerId?: string | null }) => {
+  const handleUpdateDealStage = async (dealId: string, newStage: DealStage, change?: { lossReason?: string; lossNotes?: string; customerId?: string | null }) => {
+    if (isPipelineView) {
+      const deal = pipelineDeals.find((item) => item.id === dealId);
+      if (!deal || deal.stage === newStage) return;
+      try {
+        const updated = await updateWorkspaceDeal(dealId, { ...change, stage: newStage });
+        setPipelineWorkspace((previous) => previous
+          ? { ...previous, deals: previous.deals.map((item) => item.id === updated.id ? updated : item) }
+          : previous);
+        toast.success(`Deal moved to stage: ${newStage}`);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Unable to update deal stage.');
+      }
+      return;
+    }
     const changedAt = new Date();
     const deal = scopedDeals.find((item) => item.id === dealId);
     if (!deal || deal.stage === newStage) return;
@@ -297,7 +435,19 @@ function LegacyPreviewApp() {
     toast.success(`Deal moved to stage: ${newStage}`);
   };
 
-  const handleCreateDeal = (data: CreateDealInput) => {
+  const handleCreateDeal = async (data: CreateDealInput) => {
+    if (isPipelineView) {
+      try {
+        const newDeal = await createWorkspaceDeal(data);
+        setPipelineWorkspace((previous) => previous
+          ? { ...previous, deals: [newDeal, ...previous.deals] }
+          : previous);
+        toast.success('Opportunity created in pipeline');
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Unable to create deal.');
+      }
+      return;
+    }
     const createdAt = new Date();
     const newDeal: Deal = {
       id: createId('deal'),
@@ -319,6 +469,18 @@ function LegacyPreviewApp() {
   };
 
   const handleSaveDeal = async (dealId: string, data: DealFormValues) => {
+    if (isPipelineView) {
+      try {
+        const updated = await updateWorkspaceDeal(dealId, data);
+        setPipelineWorkspace((previous) => previous
+          ? { ...previous, deals: previous.deals.map((deal) => deal.id === updated.id ? updated : deal) }
+          : previous);
+        toast.success('Deal updated');
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Unable to save deal.');
+      }
+      return;
+    }
     const existing = scopedDeals.find((deal) => deal.id === dealId);
     if (!existing) return;
     const updatedAt = new Date();
@@ -349,7 +511,21 @@ function LegacyPreviewApp() {
     toast.success('Deal updated');
   };
 
-  const handleBulkUpdateDeals = (ids: string[], updates: Partial<Deal>) => {
+  const handleBulkUpdateDeals = async (ids: string[], updates: Partial<Deal>) => {
+    if (isPipelineView) {
+      try {
+        const updatedDeals = await updateWorkspaceDeals(ids, updates);
+        const updatedById = new Map(updatedDeals.map((deal) => [deal.id, deal]));
+        setPipelineWorkspace((previous) => previous
+          ? { ...previous, deals: previous.deals.map((deal) => updatedById.get(deal.id) || deal) }
+          : previous);
+        toast.success(`Updated ${ids.length} deals`);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Unable to update selected deals.');
+        setPipelineReloadKey((key) => key + 1);
+      }
+      return;
+    }
     const changedAt = new Date();
     setDeals((prev) => prev.map((deal) => {
       if (!ids.includes(deal.id)) return deal;
@@ -363,7 +539,20 @@ function LegacyPreviewApp() {
     toast.success(`Updated ${ids.length} deals`);
   };
 
-  const handleDeleteDeals = (ids: string[]) => {
+  const handleDeleteDeals = async (ids: string[]) => {
+    if (isPipelineView) {
+      try {
+        await Promise.all(ids.map((id) => deleteWorkspaceDeal(id)));
+        setPipelineWorkspace((previous) => previous
+          ? { ...previous, deals: previous.deals.filter((deal) => !ids.includes(deal.id)) }
+          : previous);
+        toast.success(`Deleted ${ids.length} deals`);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Unable to delete selected deals.');
+        setPipelineReloadKey((key) => key + 1);
+      }
+      return;
+    }
     setDeals((prev) => prev.filter((deal) => !ids.includes(deal.id)));
     toast.success(`Deleted ${ids.length} deals`);
   };
@@ -371,6 +560,23 @@ function LegacyPreviewApp() {
   const handleCreateDealTask = (data: { title: string; assignedToId: string | null; priority: Task['priority']; dueDate: Date | null; notes: string; dealId: string }) => {
     const createdAt = new Date();
     const task: Task = { id: createId('task'), ...data, completed: false, organizationId: currentOrgId, createdAt };
+    if (isPipelineView) {
+      const deal = pipelineDeals.find((item) => item.id === data.dealId);
+      if (!deal) {
+        toast.error('Deal not found in the current workspace.');
+        return;
+      }
+      void updateWorkspaceDeal(data.dealId, { tasks: [task, ...(deal.tasks || [])] })
+        .then((updated) => {
+          setPipelineWorkspace((previous) => previous
+            ? { ...previous, deals: previous.deals.map((item) => item.id === updated.id ? updated : item) }
+            : previous);
+          setTasks((previous) => [task, ...previous]);
+          toast.success('Deal task created');
+        })
+        .catch((error: unknown) => toast.error(error instanceof Error ? error.message : 'Unable to create deal task.'));
+      return;
+    }
     setTasks((prev) => [task, ...prev]);
     setDeals((prev) => prev.map((deal) => deal.id === data.dealId ? {
       ...deal,
@@ -382,8 +588,30 @@ function LegacyPreviewApp() {
     toast.success('Deal task created');
   };
 
-  const handleCreateOrderFromDeal = (deal: Deal) => {
+  const handleCreateOrderFromDeal = async (deal: Deal) => {
     const createdAt = new Date();
+    if (isPipelineView) {
+      const existing = pipelineDeals.find((item) => item.id === deal.id);
+      if (!existing || existing.orderHandoff) return;
+      const handoff = {
+        id: createId('order_draft'),
+        customerId: deal.customerId || existing.customerId || '',
+        amount: deal.value,
+        currency: deal.currency || 'USD',
+        status: 'DRAFT' as const,
+        createdAt,
+      };
+      try {
+        const updated = await updateWorkspaceDeal(deal.id, { orderHandoff: handoff, customerId: handoff.customerId });
+        setPipelineWorkspace((previous) => previous
+          ? { ...previous, deals: previous.deals.map((item) => item.id === updated.id ? updated : item) }
+          : previous);
+        toast.success(`Draft order handoff created from ${deal.title}`);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Unable to create order handoff.');
+      }
+      return;
+    }
     setDeals((prev) => prev.map((item) => {
       if (item.id !== deal.id || item.orderHandoff) return item;
       const handoff = {
@@ -398,6 +626,23 @@ function LegacyPreviewApp() {
       return { ...item, stage: 'WON', status: 'WON', probability: 100, customerId: handoff.customerId || item.customerId, orderHandoff: handoff, activities: [activity, ...(item.activities || [])], updatedAt: createdAt, lastActivityAt: createdAt };
     }));
     toast.success(`Draft order handoff created from ${deal.title}`);
+  };
+
+  const handleUpdateDealDetails = async (id: string, updates: Partial<Deal>) => {
+    if (isPipelineView) {
+      try {
+        const updated = await updateWorkspaceDeal(id, updates);
+        setPipelineWorkspace((previous) => previous
+          ? { ...previous, deals: previous.deals.map((deal) => deal.id === updated.id ? updated : deal) }
+          : previous);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Unable to save deal changes.');
+      }
+      return;
+    }
+    setDeals((previous) => previous.map((item) => item.id === id
+      ? { ...item, ...updates, id: item.id, createdAt: item.createdAt, updatedAt: new Date() }
+      : item));
   };
 
   // Customers
@@ -577,29 +822,8 @@ function LegacyPreviewApp() {
   };
 
   // Dashboard Aggregations
-  const openDeals = scopedDeals.filter((d) => d.stage !== 'WON' && d.stage !== 'LOST');
-  const openDealsValue = openDeals.reduce((sum, d) => sum + d.value, 0);
-  const openTickets = scopedTickets.filter((t) => t.status !== 'RESOLVED');
-  const tasksDue = scopedTasks.filter((t) => !t.completed);
-
-  const monthlyRevenue = [
-    { month: 'Apr', revenue: 64000, dealsWon: 5 },
-    { month: 'May', revenue: 78500, dealsWon: 7 },
-    { month: 'Jun', revenue: 92000, dealsWon: 9 },
-    { month: 'Jul', revenue: 86400, dealsWon: 8 },
-    { month: 'Aug', revenue: 114000, dealsWon: 12 },
-    { month: 'Sep', revenue: 142500, dealsWon: 14 },
-  ];
-
-  const stages: DealStage[] = ['QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST'];
-  const dealsByStage = stages.map((st) => {
-    const dList = scopedDeals.filter((d) => d.stage === st);
-    return {
-      stage: st,
-      count: dList.length,
-      totalValue: dList.reduce((acc, curr) => acc + curr.value, 0),
-    };
-  });
+  const monthlyRevenue = dashboardStats?.monthlyRevenue ?? [];
+  const dealsByStage = dashboardStats?.dealsByStage ?? [];
 
   // Landing Page Route
   if (activeView === '/') {
@@ -810,15 +1034,24 @@ function LegacyPreviewApp() {
         onNavigate={(path) => navigate(path)}
         mobileOpen={mobileMenuOpen}
         onCloseMobile={() => setMobileMenuOpen(false)}
-        user={{
-          name: currentUser?.name || 'Sarah Jenkins',
-          email: currentUser?.email || 'sarah@acme.io',
-          role: currentUser?.role || 'ADMIN',
-          organizationName: currentOrg?.name || 'Acme Technologies Inc.',
-        }}
+        user={isWorkspaceDataView
+          ? {
+            name: dashboardStats?.workspace.user.name || (dashboardStatus === 'error' ? 'Unavailable' : 'Loading…'),
+            email: dashboardStats?.workspace.user.email || '',
+            role: dashboardStats?.workspace.user.role || '',
+            organizationName: dashboardStats?.workspace.organizationName
+              || dashboardStats?.workspace.organizationId
+              || (dashboardStatus === 'error' ? 'Unavailable' : 'Loading workspace…'),
+          }
+          : {
+            name: currentUser?.name || 'Sarah Jenkins',
+            email: currentUser?.email || 'sarah@acme.io',
+            role: currentUser?.role || 'ADMIN',
+            organizationName: currentOrg?.name || 'Acme Technologies Inc.',
+          }}
         onLogout={() => {
           void import('next-auth/react').then(({ signOut }) =>
-            signOut({ callbackUrl: '/dashboard/login' }),
+            signOut({ callbackUrl: '/login' }),
           );
         }}
       />
@@ -831,7 +1064,7 @@ function LegacyPreviewApp() {
               ? 'Executive Dashboard'
               : activeView.replace('/', '').replace('-', ' ')
           }
-          organizations={organizations}
+          organizations={isWorkspaceDataView ? [] : organizations}
           currentOrgId={currentOrgId}
           onSelectOrg={handleSwitchOrg}
           onToggleMobileSidebar={() => setMobileMenuOpen((prev) => !prev)}
@@ -851,9 +1084,54 @@ function LegacyPreviewApp() {
         />
 
         <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-y-auto min-w-0">
-          <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-            Demo workspace · Illustrative sample data · Changes are saved only in this browser
-          </p>
+          <div className={`mb-4 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs ${
+            (isLeadsView && leadsStatus === 'error') || (isPipelineView && pipelineStatus === 'error')
+              ? 'border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
+              : 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200'
+          }`}>
+            <span>
+              {isLeadsView
+                ? leadsStatus === 'ready'
+                  ? 'Leads are loaded from your saved workspace records.'
+                  : leadsStatus === 'error'
+                    ? `Workspace leads could not be loaded: ${leadsError}`
+                    : 'Loading saved workspace leads…'
+                : isPipelineView
+                  ? pipelineStatus === 'ready'
+                    ? 'Pipeline data is loaded from your saved workspace records.'
+                    : pipelineStatus === 'error'
+                      ? `Pipeline data could not be loaded: ${pipelineError}`
+                      : 'Loading saved pipeline data…'
+                  : activeView === '/dashboard' || activeView === '/reports'
+                    ? dashboardStatus === 'ready'
+                      ? 'Analytics are loaded from your saved workspace records.'
+                      : dashboardStatus === 'error'
+                        ? 'Workspace analytics could not be loaded.'
+                        : 'Loading saved workspace analytics…'
+                    : 'Demo workspace · Illustrative sample data · Changes are saved only in this browser'}
+            </span>
+            {isPipelineView && pipelineStatus === 'error' && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPipelineReloadKey((key) => key + 1)}
+                className="h-7 shrink-0 border-current px-2 text-[11px]"
+              >
+                Retry
+              </Button>
+            )}
+            {isLeadsView && leadsStatus === 'error' && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setLeadsReloadKey((key) => key + 1)}
+              >
+                Retry
+              </Button>
+            )}
+          </div>
           {/* VIEW: Dashboard */}
           {activeView === '/dashboard' && (
             <div className="space-y-4 sm:space-y-6">
@@ -868,107 +1146,163 @@ function LegacyPreviewApp() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2 shrink-0">
-                  <span className="text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                    Demo data
+                  <span className={`text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    dashboardStatus === 'ready'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : dashboardStatus === 'error'
+                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                  }`}>
+                    {dashboardStatus === 'ready' ? 'Live data' : dashboardStatus === 'error' ? 'Unavailable' : 'Loading data…'}
                   </span>
                 </div>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <StatsCard
-                  title="Total Active Leads"
-                  value={scopedLeads.length}
-                  icon={Users}
-                  change={18.2}
-                  colorVariant="indigo"
-                />
-                <StatsCard
-                  title="Open Pipeline Value"
-                  value={formatCurrency(openDealsValue)}
-                  icon={DollarSign}
-                  change={24.5}
-                  colorVariant="emerald"
-                />
-                <StatsCard
-                  title="Active Support Tickets"
-                  value={openTickets.length}
-                  icon={LifeBuoy}
-                  change={-12.5}
-                  changeLabel="resolution pace"
-                  colorVariant="amber"
-                />
-                <StatsCard
-                  title="Tasks Due Today"
-                  value={tasksDue.length}
-                  icon={CheckSquare}
-                  change={75}
-                  changeLabel="completion rate"
-                  colorVariant="purple"
-                />
-              </div>
-
-              {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
-                <RevenueChart data={monthlyRevenue} />
-                <PipelineChart data={dealsByStage} />
-              </div>
-
-              {/* Recent Activity */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-bold">Recent Opportunities</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {scopedDeals.slice(0, 3).map((deal) => {
-                      const rep = scopedUsers.find((u) => u.id === deal.assignedToId);
-                      return (
-                        <div
-                          key={deal.id}
-                          onClick={() => navigate('/deals/detail', deal.id)}
-                          className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-indigo-300 transition"
-                        >
-                          <div>
-                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{deal.title}</h4>
-                            <span className="text-xs text-slate-400">Rep: {rep?.name || 'Sarah Jenkins'}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-sm font-bold text-slate-900 dark:text-white block">{formatCurrency(deal.value)}</span>
-                            <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">{deal.stage}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+              {dashboardStatus === 'error' && (
+                <Card role="alert" className="border-rose-200 dark:border-rose-900">
+                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-rose-700 dark:text-rose-300">{dashboardError}</p>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setDashboardStatus('loading');
+                        setDashboardReloadKey((key) => key + 1);
+                      }}
+                    >
+                      Retry
+                    </Button>
                   </CardContent>
                 </Card>
+              )}
 
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-bold">Urgent Customer Inquiries</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {scopedTickets.slice(0, 3).map((ticket) => {
-                      const customer = scopedCustomers.find((c) => c.id === ticket.customerId);
-                      return (
-                        <div
-                          key={ticket.id}
-                          onClick={() => navigate('/tickets/detail', ticket.id)}
-                          className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-indigo-300 transition"
-                        >
-                          <div className="min-w-0 pr-2">
-                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{ticket.subject}</h4>
-                            <span className="text-xs text-slate-400">{customer?.company || customer?.name || 'Customer Account'}</span>
+              {dashboardStatus === 'loading' && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {Array.from({ length: 7 }, (_, index) => (
+                      <Card key={index} aria-label="Loading dashboard metric">
+                        <CardContent className="space-y-4 p-5">
+                          <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                          <div className="h-8 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
+                    {Array.from({ length: 2 }, (_, index) => (
+                      <Card key={index} className="min-h-80 animate-pulse" aria-label="Loading dashboard chart" />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    {Array.from({ length: 3 }, (_, index) => (
+                      <Card
+                        key={index}
+                        className={`min-h-56 animate-pulse ${index === 2 ? 'md:col-span-2' : ''}`}
+                        aria-label="Loading dashboard records"
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {dashboardStatus === 'ready' && dashboardStats && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <StatsCard title="Total Leads" value={dashboardStats.totalLeads} icon={Users} colorVariant="indigo" />
+                    <StatsCard title="Total Contacts" value={dashboardStats.totalContacts} icon={Building2} colorVariant="sky" />
+                    <StatsCard title="Active Deals" value={dashboardStats.activeDealsCount} icon={Kanban} colorVariant="emerald" />
+                    <StatsCard title="Closed-Won Revenue" value={formatCurrency(dashboardStats.revenueTotal)} icon={DollarSign} colorVariant="purple" />
+                    <StatsCard title="Recorded Calls" value={dashboardStats.callsCount} icon={PhoneCall} colorVariant="amber" />
+                    <StatsCard title="Tasks Due Today" value={dashboardStats.tasksDueToday} icon={CheckSquare} colorVariant="violet" />
+                    <StatsCard title="Lead Conversion Rate" value={`${dashboardStats.conversionRate}%`} icon={Percent} colorVariant="rose" />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
+                    <RevenueChart data={monthlyRevenue} />
+                    <PipelineChart data={dealsByStage} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-bold">Recent Opportunities</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {dashboardStats.recentDeals.length === 0 ? (
+                          <p className="py-6 text-center text-sm text-slate-500">No opportunities have been recorded yet.</p>
+                        ) : dashboardStats.recentDeals.map((deal) => (
+                          <div
+                            key={deal.id}
+                            onClick={() => navigate('/deals/detail', deal.id)}
+                            className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-indigo-300 transition"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <h4 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{deal.title}</h4>
+                              <span className="text-xs text-slate-400">Updated {formatDate(deal.updatedAt)}</span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-sm font-bold text-slate-900 dark:text-white block">{formatCurrency(deal.value)}</span>
+                              <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">{deal.stage}</span>
+                            </div>
                           </div>
-                          <Badge variant={ticket.priority === 'URGENT' ? 'destructive' : 'warning'}>
-                            {ticket.priority}
-                          </Badge>
-                        </div>
-                      );
-                    })}
-                  </CardContent>
-                </Card>
-              </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-bold">Urgent Customer Inquiries</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {dashboardStats.urgentTickets.length === 0 ? (
+                          <p className="py-6 text-center text-sm text-slate-500">No high-priority open inquiries.</p>
+                        ) : dashboardStats.urgentTickets.map((ticket) => (
+                          <div
+                            key={ticket.id}
+                            onClick={() => navigate('/tickets/detail', ticket.id)}
+                            className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-indigo-300 transition"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <h4 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{ticket.subject}</h4>
+                              <span className="text-xs text-slate-400">{ticket.customer || 'Customer account'}</span>
+                            </div>
+                            <Badge variant={ticket.priority === 'URGENT' ? 'destructive' : 'warning'}>
+                              {ticket.priority}
+                            </Badge>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="md:col-span-2">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base font-bold">
+                          <ActivityIcon className="h-4 w-4 text-indigo-500" />
+                          Recent Activities
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {dashboardStats.recentActivities.length === 0 ? (
+                          <p className="py-6 text-center text-sm text-slate-500">No recent activities have been recorded.</p>
+                        ) : dashboardStats.recentActivities.map((activity) => (
+                          <button
+                            key={activity.id}
+                            type="button"
+                            onClick={() => navigate(activity.href)}
+                            className="w-full flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3 text-left transition hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-800/60"
+                          >
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-semibold text-slate-900 dark:text-white">{activity.title}</span>
+                              <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{activity.description}</span>
+                              {activity.user && <span className="block text-[10px] text-slate-400">By {activity.user}</span>}
+                            </span>
+                            <span className="shrink-0 text-[10px] text-slate-400">{formatDate(activity.occurredAt)}</span>
+                          </button>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -985,8 +1319,9 @@ function LegacyPreviewApp() {
               </div>
 
               <LeadTable
-                leads={scopedLeads}
-                users={scopedUsers}
+                leads={displayedLeads}
+                users={leadAssignees}
+                isLoading={leadsStatus === 'loading'}
                 onAddLead={() => {
                   setSelectedLead(null);
                   setIsLeadModalOpen(true);
@@ -1016,8 +1351,18 @@ function LegacyPreviewApp() {
               </div>
 
               {(() => {
-                const lead = scopedLeads.find((l) => l.id === routeParam) || scopedLeads[0];
-                if (!lead) return <div>Lead not found</div>;
+                const lead = isLeadsView
+                  ? workspaceLeads?.find((item) => item.id === routeParam)
+                  : scopedLeads.find((item) => item.id === routeParam) || scopedLeads[0];
+                if (!lead) {
+                  if (isLeadsView && leadsStatus === 'loading') {
+                    return <p className="text-sm text-slate-500">Loading lead…</p>;
+                  }
+                  if (isLeadsView && leadsStatus === 'error') {
+                    return <p role="alert" className="text-sm text-rose-600">{leadsError}</p>;
+                  }
+                  return <p className="text-sm text-slate-500">Lead not found</p>;
+                }
                 const rep = scopedUsers.find((u) => u.id === lead.assignedToId);
                 return (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -1052,7 +1397,7 @@ function LegacyPreviewApp() {
                         <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
                           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lead Notes & Context</h4>
                           <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 sm:p-3.5 rounded-lg border border-slate-100 dark:border-slate-800">
-                            Prospect showed high engagement with enterprise feature matrix. Qualified for immediate sales executive engagement.
+                            {lead.notes || 'No notes have been added to this lead.'}
                           </p>
                         </div>
                       </CardContent>
@@ -1087,38 +1432,56 @@ function LegacyPreviewApp() {
 
           {/* VIEW: Pipeline */}
           {activeView === '/pipeline' && (
-            <SalesPipeline
-              deals={scopedDeals}
-              users={scopedUsers}
-              customers={scopedCustomers}
-              leadCount={scopedLeads.length}
-              onUpdateDealStage={handleUpdateDealStage}
-              onCreateDeal={handleCreateDeal}
-              onSaveDeal={handleSaveDeal}
-              onBulkUpdateDeals={handleBulkUpdateDeals}
-              onDeleteDeals={handleDeleteDeals}
-              onCreateOrderFromDeal={handleCreateOrderFromDeal}
-              onViewDeal={(id) => navigate('/deals/detail', id)}
-            />
+            pipelineStatus === 'loading' ? (
+              <div className="flex min-h-48 items-center justify-center gap-3 text-sm text-slate-500">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                Loading saved pipeline…
+              </div>
+            ) : pipelineStatus === 'error' ? (
+              <div className="rounded-lg border border-rose-200 bg-white p-8 text-center dark:border-rose-900 dark:bg-slate-900">
+                <p role="alert" className="text-sm text-rose-600">{pipelineError}</p>
+                <Button className="mt-3" size="sm" onClick={() => setPipelineReloadKey((key) => key + 1)}>Retry</Button>
+              </div>
+            ) : (
+              <SalesPipeline
+                deals={displayedDeals}
+                users={displayedUsers}
+                customers={displayedCustomers}
+                leadCount={pipelineWorkspace?.leadCount ?? 0}
+                onUpdateDealStage={handleUpdateDealStage}
+                onCreateDeal={handleCreateDeal}
+                onSaveDeal={handleSaveDeal}
+                onBulkUpdateDeals={handleBulkUpdateDeals}
+                onDeleteDeals={handleDeleteDeals}
+                onCreateOrderFromDeal={handleCreateOrderFromDeal}
+                onViewDeal={(id) => navigate('/deals/detail', id)}
+              />
+            )
           )}
 
           {/* VIEW: Deal Detail */}
           {activeView === '/deals/detail' && (() => {
-            const deal = scopedDeals.find((item) => item.id === routeParam);
+            if (pipelineStatus === 'loading') {
+              return <div className="flex min-h-48 items-center justify-center gap-3 text-sm text-slate-500"><span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />Loading saved deal…</div>;
+            }
+            if (pipelineStatus === 'error') {
+              return <div className="rounded-lg border border-rose-200 bg-white p-8 text-center dark:border-rose-900 dark:bg-slate-900"><p role="alert" className="text-sm text-rose-600">{pipelineError}</p><Button className="mt-3" size="sm" onClick={() => setPipelineReloadKey((key) => key + 1)}>Retry</Button></div>;
+            }
+            const deal = displayedDeals.find((item) => item.id === routeParam);
             if (!deal) return <div className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900">Deal not found</div>;
             return <DealDetails
               key={deal.id}
               deal={deal}
-              customer={scopedCustomers.find((customer) => customer.id === deal.customerId)}
-              customers={scopedCustomers}
+              customer={displayedCustomers.find((customer) => customer.id === deal.customerId)}
+              customers={displayedCustomers}
               tasks={scopedTasks}
-              users={scopedUsers}
-              currentUser={currentUser}
+              users={displayedUsers}
+              currentUser={isPipelineView ? pipelineCurrentUser : currentUser}
               onBack={() => navigate('/pipeline')}
               onOpenCustomer={(id) => navigate('/customers/detail', id)}
               onSaveDeal={handleSaveDeal}
               onUpdateStage={handleUpdateDealStage}
-              onUpdateDeal={(id, updates) => setDeals((prev) => prev.map((item) => item.id === id ? { ...item, ...updates, id: item.id, createdAt: item.createdAt, updatedAt: new Date() } : item))}
+              onUpdateDeal={handleUpdateDealDetails}
               onCreateTask={handleCreateDealTask}
               onCreateOrderFromDeal={handleCreateOrderFromDeal}
             />;
@@ -1422,7 +1785,11 @@ function LegacyPreviewApp() {
                     </div>
                     <div>
                       <span className="text-xs text-slate-400 uppercase font-semibold">Overall Win Rate</span>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">87.5%</h3>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                        {dashboardStatus === 'ready' && dashboardStats
+                          ? `${dashboardStats.closedDealsCount === 0 ? 0 : ((dashboardStats.wonDealsCount / dashboardStats.closedDealsCount) * 100).toFixed(1)}%`
+                          : dashboardStatus === 'loading' ? 'Loading…' : 'Unavailable'}
+                      </h3>
                     </div>
                   </div>
                 </Card>
@@ -1434,7 +1801,11 @@ function LegacyPreviewApp() {
                     </div>
                     <div>
                       <span className="text-xs text-slate-400 uppercase font-semibold">Average Deal Size</span>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(41500)}</h3>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                        {dashboardStatus === 'ready' && dashboardStats
+                          ? formatCurrency(dashboardStats.averageDealSize)
+                          : dashboardStatus === 'loading' ? 'Loading…' : 'Unavailable'}
+                      </h3>
                     </div>
                   </div>
                 </Card>
@@ -1446,16 +1817,37 @@ function LegacyPreviewApp() {
                     </div>
                     <div>
                       <span className="text-xs text-slate-400 uppercase font-semibold">Sales Velocity Cycle</span>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">18.4 Days</h3>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Not tracked</h3>
                     </div>
                   </div>
                 </Card>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <RevenueChart data={monthlyRevenue} />
-                <PipelineChart data={dealsByStage} />
-              </div>
+              {dashboardStatus === 'error' && (
+                <Card role="alert" className="border-rose-200 dark:border-rose-900">
+                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-rose-700 dark:text-rose-300">{dashboardError}</p>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setDashboardStatus('loading');
+                        setDashboardReloadKey((key) => key + 1);
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+              {dashboardStatus === 'loading' && (
+                <Card className="min-h-80 animate-pulse" aria-label="Loading sales reports" />
+              )}
+              {dashboardStatus === 'ready' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <RevenueChart data={monthlyRevenue} />
+                  <PipelineChart data={dealsByStage} />
+                </div>
+              )}
             </div>
           )}
 
@@ -1641,7 +2033,7 @@ function LegacyPreviewApp() {
         onOpenChange={setIsLeadModalOpen}
         onSubmit={handleSaveLead}
         lead={selectedLead}
-        users={scopedUsers}
+        users={isLeadsView ? leadAssignees : scopedUsers}
       />
 
       <CustomerForm
