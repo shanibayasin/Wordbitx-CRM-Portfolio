@@ -1,10 +1,28 @@
 import { defineConfig, globalIgnores } from 'eslint/config';
-import nextVitals from 'eslint-config-next/core-web-vitals';
-import nextTypescript from 'eslint-config-next/typescript';
+import js from '@eslint/js';
+import next from '@next/eslint-plugin-next';
+import react from '@eslint-react/eslint-plugin';
+import reactHooks from 'eslint-plugin-react-hooks';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  ...nextVitals,
-  ...nextTypescript,
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  react.configs['recommended-typescript'],
+  reactHooks.configs.flat.recommended,
+  next.configs['core-web-vitals'],
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      'preserve-caught-error': 'off',
+    },
+  },
   globalIgnores([
     '**/.next/**',
     '**/node_modules/**',
