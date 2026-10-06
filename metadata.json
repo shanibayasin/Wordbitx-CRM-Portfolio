@@ -1,6 +1,6 @@
 {
   "name": "WordbitX",
-  "description": "WordbitX brings leads, customers, sales pipelines, support, automation, analytics and AI-assisted workflows into one powerful CRM workspace.",
+  "description": "WordbitX combines its marketing site with a production-ready, multi-tenant CRM for leads, customers, sales pipelines, support, automation, analytics, and AI-assisted workflows.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

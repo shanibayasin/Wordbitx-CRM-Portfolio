@@ -1,7 +1,7 @@
 import {
   GET as getLeads,
   POST as createLead,
-} from '../../../../wordbitx/app/api/leads/route';
+} from '@/app/dashboardwordbitx/_server/api/leads/route';
 
 export const GET = getLeads;
 export const POST = createLead;

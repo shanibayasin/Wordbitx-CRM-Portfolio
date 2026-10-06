@@ -2,8 +2,8 @@ import bcrypt from 'bcryptjs';
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import User from '../../../../../wordbitx/models/User';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
+import User from '@/app/dashboardwordbitx/models/User';
 
 const setupSchema = z.object({
   password: z

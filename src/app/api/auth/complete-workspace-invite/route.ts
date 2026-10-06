@@ -3,10 +3,10 @@ import { createHash } from 'node:crypto';
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import Organization from '../../../../../wordbitx/models/Organization';
-import User from '../../../../../wordbitx/models/User';
-import WorkspaceRequest from '../../../../../wordbitx/models/WorkspaceRequest';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
+import Organization from '@/app/dashboardwordbitx/models/Organization';
+import User from '@/app/dashboardwordbitx/models/User';
+import WorkspaceRequest from '@/app/dashboardwordbitx/models/WorkspaceRequest';
 
 const inviteSchema = z.object({
   token: z.string().regex(/^[A-Za-z0-9_-]{43}$/, 'This invite link is invalid or expired.'),

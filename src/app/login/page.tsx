@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '../../../wordbitx/lib/auth';
+import { getCurrentUser } from '@/app/dashboardwordbitx/lib/auth';
 import { LoginPage } from '../../site-pages/LoginPage';
 
 export const metadata: Metadata = {

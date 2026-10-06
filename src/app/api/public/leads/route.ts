@@ -1,4 +1,4 @@
 export {
   OPTIONS,
   POST,
-} from '../../../../../wordbitx/app/api/public/leads/route';
+} from '@/app/dashboardwordbitx/_server/api/public/leads/route';

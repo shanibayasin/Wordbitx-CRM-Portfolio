@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '../../../../wordbitx/lib/auth';
-import CRMApp from '../../../../wordbitx/src/App';
+import { getCurrentUser } from '@/app/dashboardwordbitx/lib/auth';
+import CRMApp from '@/app/dashboardwordbitx/App';
 
 export const metadata: Metadata = {
   title: 'WordbitX CRM Dashboard',

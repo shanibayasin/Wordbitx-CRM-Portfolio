@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import { requirePlatformAdmin } from '../../../../../wordbitx/lib/auth';
-import WorkspaceRequest from '../../../../../wordbitx/models/WorkspaceRequest';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
+import { requirePlatformAdmin } from '@/app/dashboardwordbitx/lib/auth';
+import WorkspaceRequest from '@/app/dashboardwordbitx/models/WorkspaceRequest';
 
 export async function GET() {
   try {

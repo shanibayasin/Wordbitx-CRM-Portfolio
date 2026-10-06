@@ -1,5 +1,5 @@
 import NextAuth from 'next-auth';
-import authOptions from '../../../../../wordbitx/lib/auth';
+import authOptions from '@/app/dashboardwordbitx/lib/auth';
 
 const handler = NextAuth(authOptions);
 

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
-import { getCurrentUser, isConfiguredPlatformAdminEmail } from '../../../wordbitx/lib/auth';
-import { DemoRequestsPanel } from '../../../wordbitx/components/dashboard/DemoRequestsPanel';
-import { WorkspaceRequestsPanel } from '../../../wordbitx/components/dashboard/WorkspaceRequestsPanel';
+import { getCurrentUser, isConfiguredPlatformAdminEmail } from '@/app/dashboardwordbitx/lib/auth';
+import { DemoRequestsPanel } from '@/app/dashboardwordbitx/components/dashboard/DemoRequestsPanel';
+import { WorkspaceRequestsPanel } from '@/app/dashboardwordbitx/components/dashboard/WorkspaceRequestsPanel';
 
 export default async function PlatformAdminPage() {
   const user = await getCurrentUser();

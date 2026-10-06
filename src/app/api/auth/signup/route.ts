@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import { isConfiguredPlatformAdminEmail } from '../../../../../wordbitx/lib/auth';
-import User from '../../../../../wordbitx/models/User';
-import WorkspaceRequest from '../../../../../wordbitx/models/WorkspaceRequest';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
+import { isConfiguredPlatformAdminEmail } from '@/app/dashboardwordbitx/lib/auth';
+import User from '@/app/dashboardwordbitx/models/User';
+import WorkspaceRequest from '@/app/dashboardwordbitx/models/WorkspaceRequest';
 
 const requestSchema = z.object({
   name: z.string().trim().min(2, 'Enter your full name.').max(120, 'Name is too long.'),

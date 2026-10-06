@@ -2,11 +2,11 @@ import { createHash, randomBytes } from 'node:crypto';
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import connectToDatabase from '../../../../../../wordbitx/lib/mongodb';
-import { requirePlatformAdmin } from '../../../../../../wordbitx/lib/auth';
-import { sendWorkspaceInviteEmail } from '../../../../../../wordbitx/lib/workspaceInvites';
-import User from '../../../../../../wordbitx/models/User';
-import WorkspaceRequest from '../../../../../../wordbitx/models/WorkspaceRequest';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
+import { requirePlatformAdmin } from '@/app/dashboardwordbitx/lib/auth';
+import { sendWorkspaceInviteEmail } from '@/app/dashboardwordbitx/lib/workspaceInvites';
+import User from '@/app/dashboardwordbitx/models/User';
+import WorkspaceRequest from '@/app/dashboardwordbitx/models/WorkspaceRequest';
 
 const actionSchema = z.object({ action: z.enum(['approve', 'reject']) }).strict();
 

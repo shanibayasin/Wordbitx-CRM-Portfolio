@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { ArrowRight } from 'lucide-react';
-import { getSignInErrorMessage } from '../../wordbitx/lib/authErrors';
+import { getSignInErrorMessage } from '@/app/dashboardwordbitx/lib/authErrors';
 
 export const LoginPage: React.FC = () => {
   const router = useRouter();

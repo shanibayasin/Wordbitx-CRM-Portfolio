@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import DemoRequest from '../../../../../wordbitx/models/DemoRequest';
-import Organization from '../../../../../wordbitx/models/Organization';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
+import DemoRequest from '@/app/dashboardwordbitx/models/DemoRequest';
+import Organization from '@/app/dashboardwordbitx/models/Organization';
 
 const demoRequestSchema = z
   .object({

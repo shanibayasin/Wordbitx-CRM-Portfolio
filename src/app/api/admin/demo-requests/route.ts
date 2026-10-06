@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
 import {
   canManageOrganization,
   requireAuth,
   requirePlatformAdmin,
-} from '../../../../../wordbitx/lib/auth';
-import DemoRequest from '../../../../../wordbitx/models/DemoRequest';
+} from '@/app/dashboardwordbitx/lib/auth';
+import DemoRequest from '@/app/dashboardwordbitx/models/DemoRequest';
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ success: false, error: message }, { status });

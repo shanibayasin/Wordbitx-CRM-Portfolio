@@ -17,7 +17,7 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     },
     "plugins": [
@@ -41,7 +41,6 @@
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules",
-    "wordbitx/next.config.ts"
+    "node_modules"
   ]
 }

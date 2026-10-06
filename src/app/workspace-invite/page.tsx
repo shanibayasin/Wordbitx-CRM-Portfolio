@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { WorkspaceInviteForm } from '../../../wordbitx/components/dashboard/WorkspaceInviteForm';
+import { WorkspaceInviteForm } from '@/app/dashboardwordbitx/components/dashboard/WorkspaceInviteForm';
 
 export const metadata: Metadata = {
   title: 'Activate Workspace',

@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import connectToDatabase from '../../../../../../wordbitx/lib/mongodb';
+import connectToDatabase from '@/app/dashboardwordbitx/lib/mongodb';
 import {
   canManageOrganization,
   requireAuth,
   requirePlatformAdmin,
-} from '../../../../../../wordbitx/lib/auth';
-import DemoRequest from '../../../../../../wordbitx/models/DemoRequest';
+} from '@/app/dashboardwordbitx/lib/auth';
+import DemoRequest from '@/app/dashboardwordbitx/models/DemoRequest';
 
 const statusSchema = z.object({
   status: z.enum(['NEW', 'CONTACTED', 'SCHEDULED', 'COMPLETED']),

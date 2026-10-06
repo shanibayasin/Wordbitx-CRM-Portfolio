@@ -1,3 +1,3 @@
-import { GET as getWorkspaceUsers } from '../../../../wordbitx/app/api/users/route';
+import { GET as getWorkspaceUsers } from '@/app/dashboardwordbitx/_server/api/users/route';
 
 export const GET = getWorkspaceUsers;
