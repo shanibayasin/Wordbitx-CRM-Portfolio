@@ -2,21 +2,11 @@
 
 import React, { useState } from 'react';
 import {
-  UserCheck,
-  Building,
-  Mail,
-  Phone,
-  Sparkles,
   Calendar,
-  Clock,
   Plus,
   CheckCircle2,
-  FileText,
   TrendingUp,
-  Tag,
-  ArrowRight,
   X,
-  MessageSquare
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';

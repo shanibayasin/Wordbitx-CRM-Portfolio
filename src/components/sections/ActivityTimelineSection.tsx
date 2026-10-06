@@ -1,5 +1,5 @@
 import React from 'react';
-import { History, TrendingUp, PhoneCall, Mail, UserPlus, Clock, CheckCircle } from 'lucide-react';
+import { TrendingUp, PhoneCall, UserPlus, Clock } from 'lucide-react';
 
 export const ActivityTimelineSection: React.FC = () => {
   const events = [

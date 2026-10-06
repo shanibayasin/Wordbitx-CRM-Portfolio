@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Check, Minus, Lock } from 'lucide-react';
+import { Check, Minus } from 'lucide-react';
 
 interface MatrixRow {
   module: string;

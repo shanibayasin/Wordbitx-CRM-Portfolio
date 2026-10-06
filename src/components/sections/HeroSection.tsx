@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, ShieldCheck, Sparkles, TrendingUp, CheckCircle, Bell, UserPlus, PhoneCall, Zap, BarChart2 } from 'lucide-react';
+import { ArrowRight, Sparkles, TrendingUp, Bell, UserPlus } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useNavigation } from '../../context/NavigationContext';
 import { HeroDashboardPreview } from './HeroDashboardPreview';

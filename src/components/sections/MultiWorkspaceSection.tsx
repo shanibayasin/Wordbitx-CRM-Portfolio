@@ -1,14 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Building2, Users, LayoutDashboard, Headphones, ArrowRight, ShieldCheck, Check } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { useNavigation } from '../../context/NavigationContext';
+import { Building2 } from 'lucide-react';
 
 export const MultiWorkspaceSection: React.FC = () => {
   const [selectedWorkspace, setSelectedWorkspace] = useState<'sales' | 'support' | 'operations'>('sales');
-  const { navigate } = useNavigation();
-
   return (
     <section className="py-20 md:py-28 bg-[#f5f8f6] dark:bg-[#071714] border-b border-slate-200/80 dark:border-[#183932]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

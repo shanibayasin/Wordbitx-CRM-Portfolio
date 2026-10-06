@@ -2,21 +2,9 @@
 
 import React, { useState } from 'react';
 import {
-  PhoneCall,
   PhoneIncoming,
   PhoneOutgoing,
-  PhoneMissed,
-  Clock,
-  Headphones,
-  Users,
-  Activity,
-  CheckCircle2,
-  ExternalLink,
-  Shield,
-  Layers
 } from 'lucide-react';
-import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
 
 export const CallCenterSection: React.FC = () => {
   const [activeQueueTab, setActiveQueueTab] = useState<'agents' | 'live_calls' | 'telephony'>('agents');

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { FAQ_DATA } from '../../data/faqData';
 import { useNavigation } from '../../context/NavigationContext';
 

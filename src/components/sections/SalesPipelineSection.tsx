@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, ChevronRight, DollarSign, GripVertical, Check, Plus, AlertCircle, ArrowUpDown } from 'lucide-react';
 import { Deal } from '../../types';
 
 interface PipelineColumn {

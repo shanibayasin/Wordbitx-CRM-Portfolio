@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LeadForm } from '../../../components/leads/LeadForm.tsx';
 import { LeadAdvancedTable } from '../../../components/leads/LeadAdvancedTable.tsx';
@@ -108,12 +108,12 @@ export default function LeadsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-  const loadLeads = async () => {
+  const loadLeads = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/leads', { cache: 'no-store' });
+      const response = await fetch('/api/leads', { cache: 'no-store', signal });
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -124,17 +124,22 @@ export default function LeadsPage() {
       setLeads(nextLeads);
       setUsers((prev) => prev.length > 0 ? prev : []);
     } catch (loadError) {
+      if (signal?.aborted) return;
       const message = loadError instanceof Error ? loadError.message : 'Unable to load leads.';
       setError(message);
       toast.error(message);
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    void loadLeads();
-  }, []);
+    const controller = new AbortController();
+    void Promise.resolve().then(() => {
+      if (!controller.signal.aborted) void loadLeads(controller.signal);
+    });
+    return () => controller.abort();
+  }, [loadLeads]);
 
   const handleAddLead = () => {
     setSelectedLead(null);

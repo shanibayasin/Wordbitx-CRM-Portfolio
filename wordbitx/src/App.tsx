@@ -261,9 +261,14 @@ function LegacyPreviewApp({
     if (!isPipelineView) return;
 
     const controller = new AbortController();
-    setPipelineStatus('loading');
-    void getPipelineWorkspace(controller.signal)
+    void Promise.resolve()
+      .then(() => {
+        if (controller.signal.aborted) return null;
+        setPipelineStatus('loading');
+        return getPipelineWorkspace(controller.signal);
+      })
       .then((workspace) => {
+        if (!workspace) return;
         setPipelineWorkspace(workspace);
         setPipelineStatus('ready');
         setPipelineError('');

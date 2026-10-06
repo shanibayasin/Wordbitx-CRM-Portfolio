@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, CheckSquare, Clock, Phone, Video, FileText, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, CheckSquare, Clock, Phone, Video } from 'lucide-react';
 
 export const CalendarTasksSection: React.FC = () => {
   const [tasks, setTasks] = useState([

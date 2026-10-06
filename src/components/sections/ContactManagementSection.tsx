@@ -2,19 +2,14 @@
 
 import React, { useState } from 'react';
 import {
-  User,
   Phone,
   Mail,
   Building,
-  CheckCircle2,
   Clock,
   PhoneIncoming,
   FileText,
-  MessageSquare,
   Sparkles,
-  ArrowRight,
   TrendingUp,
-  Headphones
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 

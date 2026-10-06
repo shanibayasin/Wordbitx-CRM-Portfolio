@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Lock, Key, FileText, Database, Server, UserCheck, Shield } from 'lucide-react';
+import { Lock, FileText, Database, UserCheck } from 'lucide-react';
 
 export const SecuritySection: React.FC = () => {
   const securityPillars = [

@@ -1,18 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  DollarSign,
-  Calendar,
-  User,
-  Building,
-  CheckCircle,
-  Clock,
-  FileText,
-  Activity,
-  ArrowRight,
-  TrendingUp,
-  Percent,
   CheckCircle2
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';

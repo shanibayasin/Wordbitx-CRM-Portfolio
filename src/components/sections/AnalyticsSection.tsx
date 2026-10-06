@@ -2,16 +2,7 @@
 
 import React, { useState } from 'react';
 import {
-  BarChart3,
-  TrendingUp,
-  DollarSign,
-  Users,
-  Target,
-  Clock,
   ArrowUpRight,
-  Filter,
-  PieChart,
-  ArrowDownRight
 } from 'lucide-react';
 
 type TimeRange = 'today' | '7d' | '30d' | '90d' | 'custom';

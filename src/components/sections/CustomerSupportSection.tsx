@@ -1,20 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  LifeBuoy,
   Clock,
-  User,
-  Building,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
   TrendingUp,
-  MessageSquare,
-  FileText,
-  ShieldCheck
 } from 'lucide-react';
-import { Badge } from '../ui/Badge';
 
 export const CustomerSupportSection: React.FC = () => {
   return (

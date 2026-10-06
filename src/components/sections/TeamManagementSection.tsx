@@ -1,5 +1,4 @@
 import React from 'react';
-import { Users, Shield, Award, CheckCircle2, TrendingUp, Clock } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 
 export const TeamManagementSection: React.FC = () => {

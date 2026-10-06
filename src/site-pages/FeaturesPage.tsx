@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, Check, Search, Filter, Layers, Sparkles, Target, Headphones, GitPullRequest, Bot, Shield, BarChart3 } from 'lucide-react';
-import { FEATURES_DATA, FeatureDetail } from '../data/featuresData';
+import { ArrowRight, Check, Search } from 'lucide-react';
+import { FEATURES_DATA } from '../data/featuresData';
 import { Button } from '../components/ui/Button';
 import { useNavigation } from '../context/NavigationContext';
 
@@ -83,7 +83,7 @@ export const FeaturesPage: React.FC = () => {
               No features match your query. Try a different search term or category.
             </div>
           ) : (
-            filteredFeatures.map((feat, idx) => (
+            filteredFeatures.map((feat) => (
               <div
                 key={feat.id}
                 className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#0b1f1b] border border-slate-200/80 dark:border-[#183932] shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8 items-start hover:border-emerald-300 dark:hover:border-emerald-700/60 transition-colors"

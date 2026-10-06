@@ -2,18 +2,14 @@
 
 import React, { useState } from 'react';
 import {
-  GitPullRequest,
   Check,
   Play,
   ArrowDown,
-  Sparkles,
   Zap,
   Users,
   Bell,
   Clock,
   RotateCcw,
-  CheckCircle2,
-  Workflow
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 

@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowRight, CheckCircle2, ChevronRight, Layers, Sparkles, Check } from 'lucide-react';
-
 interface JourneyStep {
   id: string;
   name: string;

@@ -4,13 +4,10 @@ import React, { useState } from 'react';
 import {
   Sparkles,
   Bot,
-  Send,
   CheckCircle2,
   TrendingUp,
-  FileText,
   Mail,
   RefreshCw,
-  Lightbulb,
   Check,
   Copy
 } from 'lucide-react';
