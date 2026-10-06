@@ -1,3 +1,4 @@
+import '@/app/dashboardwordbitx/lib/configureAuthUrl';
 import NextAuth from 'next-auth';
 import authOptions from '@/app/dashboardwordbitx/lib/auth';
 

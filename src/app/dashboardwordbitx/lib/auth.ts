@@ -1,3 +1,4 @@
+import './configureAuthUrl.ts';
 import { headers } from 'next/headers';
 import { NextRequest } from 'next/server';
 import { getServerSession, type NextAuthOptions } from 'next-auth';

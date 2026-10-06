@@ -20,4 +20,4 @@ The CRM dashboard and its feature components, UI, models, services, validations,
 
 Existing URLs, authentication, and API integrations are preserved. The dashboard remains at `/dashboard`, with CRM pages such as `/login`, `/register`, `/leads`, `/customers`, `/pipeline`, and `/settings`. Route adapters remain in `src/app/` while their CRM implementations are organized under the dashboard module.
 
-Required CRM secrets and integrations are documented in [`.env.example`](./.env.example). Set the appropriate values in your local environment and deployment platform; do not commit real secrets.
+Required CRM secrets and integrations are documented in [`.env.example`](./.env.example). Set the appropriate values in your local environment and deployment platform; do not commit real secrets. In Vercel, set `NEXTAUTH_URL` to the public HTTPS domain and `MONGODB_URI` to a database URI that is reachable from Vercel (including MongoDB Atlas network access).
