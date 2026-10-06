@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { timingSafeEqual } from 'node:crypto';
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -15,6 +16,17 @@ const registrationSchema = z
   .strict();
 
 export async function POST(request: Request) {
+  const setupToken = process.env.INITIAL_ADMIN_SETUP_TOKEN;
+  if (!setupToken || setupToken.length < 32) {
+    return NextResponse.json({ success: false, error: 'Administrator setup is not enabled.' }, { status: 503 });
+  }
+  const suppliedToken = request.headers.get('x-initial-admin-setup-token') ?? '';
+  const expectedBytes = Buffer.from(setupToken);
+  const suppliedBytes = Buffer.from(suppliedToken);
+  if (expectedBytes.length !== suppliedBytes.length || !timingSafeEqual(expectedBytes, suppliedBytes)) {
+    return NextResponse.json({ success: false, error: 'Administrator setup authorization failed.' }, { status: 403 });
+  }
+
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     return NextResponse.json({ success: false, error: 'Content-Type must be application/json.' }, { status: 415 });
   }

@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import Lead from '../../../../../wordbitx/models/Lead';
+import DemoRequest from '../../../../../wordbitx/models/DemoRequest';
 import Organization from '../../../../../wordbitx/models/Organization';
 
 const demoRequestSchema = z
@@ -10,6 +10,7 @@ const demoRequestSchema = z
     name: z.string().trim().min(2, 'Enter your name.').max(120, 'Name is too long.'),
     email: z.string().trim().email('Enter a valid email address.').max(254, 'Email address is too long.'),
     company: z.string().trim().min(1, 'Enter your company name.').max(120, 'Company name is too long.'),
+    phone: z.string().trim().max(40, 'Phone number is too long.').optional().default(''),
     teamSize: z.enum(['1-5', '5-20', '20-50', '50+']),
     role: z.string().trim().max(120, 'Role is too long.'),
     features: z.array(z.enum([
@@ -20,14 +21,15 @@ const demoRequestSchema = z
       'Multi-Workspace Agency Model',
       'REST API & Webhooks',
     ])).max(6),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a valid demo date.'),
-    notes: z.string().trim().max(2000, 'Additional notes are too long.'),
+    preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a valid demo date.'),
+    preferredTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Choose a valid demo time.'),
+    message: z.string().trim().min(1, 'Tell us what you would like to cover.').max(2000, 'Message is too long.'),
   })
   .strict()
-  .refine(({ date }) => {
-    const parsed = new Date(`${date}T00:00:00.000Z`);
-    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
-  }, { path: ['date'], message: 'Choose a valid demo date.' });
+  .refine(({ preferredDate }) => {
+    const parsed = new Date(`${preferredDate}T00:00:00.000Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === preferredDate;
+  }, { path: ['preferredDate'], message: 'Choose a valid demo date.' });
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
@@ -84,26 +86,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, email, company, teamSize, role, features, date, notes } = validation.data;
-    const message = [
-      notes ? `Message: ${notes}` : '',
-      `Preferred demo date: ${date}`,
-      `Team size: ${teamSize}`,
-      role ? `Role: ${role}` : '',
-      `Focus areas: ${features.join(', ') || 'None selected'}`,
-    ].filter(Boolean).join('\n\n');
-    const lead = await Lead.create({
-      name,
-      email: email.toLowerCase(),
-      company,
-      companySize: teamSize,
-      source: 'website-demo',
-      notes: message,
+    const demoRequest = await DemoRequest.create({
+      ...validation.data,
+      email: validation.data.email.toLowerCase(),
       organizationId: new mongoose.Types.ObjectId(organizationId),
     });
 
     return NextResponse.json(
-      { success: true, data: { id: lead._id.toString() } },
+      { success: true, data: { id: demoRequest._id.toString() } },
       { status: 201 }
     );
   } catch (error) {

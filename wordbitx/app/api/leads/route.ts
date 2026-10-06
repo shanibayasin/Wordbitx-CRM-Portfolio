@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectToDatabase from '../../../lib/mongodb.ts';
-import { canManageLeads, canViewLeads, requireAuth } from '../../../lib/auth.ts';
+import { canManageLeads, canViewLeads, requireOrganizationAuth } from '../../../lib/auth.ts';
 import Lead from '../../../models/Lead.ts';
 import { leadSchema } from '../../../lib/validations/leadSchema.ts';
 
@@ -23,7 +23,7 @@ function serializeLead(input: unknown) {
 
 export async function GET(request: Request) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canViewLeads(currentUser.role)) {
       return jsonError('You do not have permission to view leads.', 403, 'FORBIDDEN');
     }
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canManageLeads(currentUser.role)) {
       return jsonError('You do not have permission to create leads.', 403, 'FORBIDDEN');
     }

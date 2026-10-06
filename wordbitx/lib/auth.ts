@@ -4,16 +4,18 @@ import { getServerSession, type NextAuthOptions } from 'next-auth';
 import { getToken } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import connectToDatabase from './mongodb.ts';
 import User from '../models/User.ts';
 import Organization from '../models/Organization.ts';
+import type { Role } from '../types/index.ts';
 
 export type AuthenticatedSessionUser = {
   id: string;
   email?: string | null;
   name?: string | null;
-  role?: string;
-  organizationId?: string;
+  role?: Role;
+  organizationId?: string | null;
   organizationName?: string;
 };
 
@@ -32,19 +34,49 @@ export async function getSafeServerSession() {
 
 export async function getCurrentUser(): Promise<AuthenticatedSessionUser | null> {
   const session = await getSafeServerSession();
-  const user = session?.user;
+  const sessionUser = session?.user;
 
-  if (!user?.id || !user.organizationId) {
+  if (!sessionUser?.id || !mongoose.isValidObjectId(sessionUser.id)) {
+    return null;
+  }
+
+  await connectToDatabase();
+  const user = await User.findById(sessionUser.id)
+    .select('name email role organizationId avatarUrl')
+    .lean();
+  if (!user) {
+    return null;
+  }
+
+  if (user.role === 'SUPER_ADMIN') {
+    if (user.organizationId) {
+      return null;
+    }
+    return {
+      id: user._id.toString(),
+      email: user.email ?? null,
+      name: user.name ?? null,
+      role: user.role,
+      organizationId: null,
+    };
+  }
+
+  if (!user.organizationId || !mongoose.isValidObjectId(user.organizationId)) {
+    return null;
+  }
+
+  const organization = await Organization.findById(user.organizationId).select('name').lean();
+  if (!organization) {
     return null;
   }
 
   return {
-    id: user.id,
+    id: user._id.toString(),
     email: user.email ?? null,
     name: user.name ?? null,
-    role: user.role ?? undefined,
-    organizationId: user.organizationId,
-    organizationName: user.organizationName ?? undefined,
+    role: user.role,
+    organizationId: user.organizationId.toString(),
+    organizationName: organization.name,
   };
 }
 
@@ -60,12 +92,63 @@ export async function requireAuth(): Promise<AuthenticatedSessionUser> {
   return user;
 }
 
-export function canManageLeads(role?: string) {
-  return role === 'ADMIN' || role === 'SALES' || role === 'AGENT';
+export interface OrganizationAuthenticatedUser extends AuthenticatedSessionUser {
+  organizationId: string;
 }
 
-export function canViewLeads(role?: string) {
-  return Boolean(role && ['ADMIN', 'SALES', 'SUPPORT', 'AGENT'].includes(role));
+export async function requireOrganizationAuth(): Promise<OrganizationAuthenticatedUser> {
+  const user = await requireAuth();
+  if (user.role === 'SUPER_ADMIN') {
+    const error = new Error('Platform administrators cannot use organization CRM endpoints.');
+    (error as Error & { statusCode?: number }).statusCode = 403;
+    throw error;
+  }
+  if (!user.organizationId || !mongoose.isValidObjectId(user.organizationId)) {
+    const error = new Error('Organization context is missing or invalid.');
+    (error as Error & { statusCode?: number }).statusCode = 401;
+    throw error;
+  }
+  return { ...user, organizationId: user.organizationId };
+}
+
+export function canManageLeads(role?: Role | string) {
+  return Boolean(role && [
+    'ORGANIZATION_OWNER',
+    'ORGANIZATION_ADMIN',
+    'SALES_MANAGER',
+    'SALES_AGENT',
+    'ADMIN',
+    'SALES',
+    'AGENT',
+  ].includes(role));
+}
+
+export function canViewLeads(role?: Role | string) {
+  return Boolean(role && [
+    'ORGANIZATION_OWNER',
+    'ORGANIZATION_ADMIN',
+    'SALES_MANAGER',
+    'SALES_AGENT',
+    'VIEWER',
+    'ADMIN',
+    'SALES',
+    'SUPPORT',
+    'AGENT',
+  ].includes(role));
+}
+
+export function canManageOrganization(role?: Role | string) {
+  return role === 'ORGANIZATION_OWNER' || role === 'ORGANIZATION_ADMIN' || role === 'ADMIN';
+}
+
+export async function requirePlatformAdmin(): Promise<AuthenticatedSessionUser> {
+  const user = await requireAuth();
+  if (user.role !== 'SUPER_ADMIN' || user.organizationId) {
+    const error = new Error('Platform administrator access is required.');
+    (error as Error & { statusCode?: number }).statusCode = 403;
+    throw error;
+  }
+  return user;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -98,8 +181,14 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid email or password');
           }
 
-          const organization = await Organization.findById(user.organizationId);
-          if (!organization) {
+          const isPlatformAdmin = user.role === 'SUPER_ADMIN';
+          if (isPlatformAdmin && user.organizationId) {
+            throw new Error('Platform administrator accounts cannot be assigned to an organization.');
+          }
+          const organization = isPlatformAdmin
+            ? null
+            : await Organization.findById(user.organizationId);
+          if (!isPlatformAdmin && !organization) {
             throw new Error('Unable to authenticate at this time');
           }
 
@@ -108,9 +197,9 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             email: user.email,
             role: user.role,
-            organizationId: user.organizationId.toString(),
+            organizationId: user.organizationId?.toString() ?? null,
             avatarUrl: user.avatarUrl || null,
-            organizationName: organization.name,
+            organizationName: organization?.name,
           };
         } catch (error) {
           if (error instanceof Error && error.message === 'Invalid email or password') {

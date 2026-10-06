@@ -1,85 +1,89 @@
+import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import connectToDatabase from '../../../lib/mongodb.ts';
+import { canManageLeads, canViewLeads, requireOrganizationAuth } from '../../../lib/auth.ts';
 import Task from '../../../models/Task.ts';
+import User from '../../../models/User.ts';
 
-export async function GET(request: Request) {
+const createTaskSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  dueDate: z.string().refine((value) => !Number.isNaN(Date.parse(value)), 'Due date is invalid.').nullable().optional(),
+  completed: z.boolean().optional(),
+  assignedToId: z.string().nullable().optional(),
+}).strict();
+
+function errorResponse(error: unknown, fallback: string) {
+  const status = (error as Error & { statusCode?: number }).statusCode ?? 500;
+  return NextResponse.json({ error: error instanceof Error ? error.message : fallback }, { status });
+}
+
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const orgId = searchParams.get('organizationId') || 'org_acme';
-
-    try {
-      await connectToDatabase();
-      const tasks = await Task.find({ organizationId: orgId })
-        .populate('assignedToId', 'name email role avatarUrl')
-        .sort({ createdAt: -1 })
-        .lean();
-
-      const formatted = tasks.map((t) => ({
-        id: t._id.toString(),
-        title: t.title,
-        dueDate: t.dueDate,
-        completed: t.completed,
-        organizationId: t.organizationId.toString(),
-        assignedToId: t.assignedToId?._id?.toString() || null,
-        assignedTo: t.assignedToId || null,
-        createdAt: t.createdAt,
-      }));
-
-      return NextResponse.json(formatted);
-    } catch {
-      return NextResponse.json([]);
+    const user = await requireOrganizationAuth();
+    if (!canViewLeads(user.role)) {
+      return NextResponse.json({ error: 'You do not have permission to view tasks.' }, { status: 403 });
     }
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to fetch tasks' }, { status: 500 });
+    await connectToDatabase();
+    const organizationId = new mongoose.Types.ObjectId(user.organizationId);
+    const tasks = await Task.find({ organizationId })
+      .populate<{ assignedToId: { _id: mongoose.Types.ObjectId; name: string; email: string; role: string; avatarUrl?: string | null } | null }>(
+        'assignedToId',
+        'name email role avatarUrl'
+      )
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return NextResponse.json(tasks.map((task) => ({
+      id: task._id.toString(),
+      title: task.title,
+      dueDate: task.dueDate,
+      completed: task.completed,
+      organizationId: task.organizationId.toString(),
+      assignedToId: task.assignedToId?._id?.toString() ?? null,
+      assignedTo: task.assignedToId ?? null,
+      createdAt: task.createdAt,
+    })));
+  } catch (error) {
+    return errorResponse(error, 'Failed to fetch tasks.');
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const orgId = body.organizationId || 'org_acme';
-
-    if (!body.title) {
-      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    const user = await requireOrganizationAuth();
+    if (!canManageLeads(user.role)) {
+      return NextResponse.json({ error: 'You do not have permission to create tasks.' }, { status: 403 });
     }
-
-    try {
-      await connectToDatabase();
-      const newTask = await Task.create({
-        title: body.title,
-        dueDate: body.dueDate ? new Date(body.dueDate) : null,
-        completed: Boolean(body.completed),
-        organizationId: orgId,
-        assignedToId: body.assignedToId || null,
-      });
-
-      return NextResponse.json(
-        {
-          id: newTask._id.toString(),
-          title: newTask.title,
-          dueDate: newTask.dueDate,
-          completed: newTask.completed,
-          organizationId: orgId,
-          assignedToId: newTask.assignedToId?.toString() || null,
-          createdAt: newTask.createdAt,
-        },
-        { status: 201 }
-      );
-    } catch {
-      return NextResponse.json(
-        {
-          id: `task_${Date.now()}`,
-          title: body.title,
-          dueDate: body.dueDate ? new Date(body.dueDate) : null,
-          completed: Boolean(body.completed),
-          organizationId: orgId,
-          assignedToId: body.assignedToId || null,
-          createdAt: new Date(),
-        },
-        { status: 201 }
-      );
+    const body: unknown = await request.json().catch(() => null);
+    const validation = createTaskSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0]?.message ?? 'Task data is invalid.' }, { status: 422 });
     }
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to create task' }, { status: 500 });
+    await connectToDatabase();
+    const organizationId = new mongoose.Types.ObjectId(user.organizationId);
+    const assignedToId = validation.data.assignedToId;
+    if (assignedToId && (!mongoose.isValidObjectId(assignedToId) ||
+      !await User.exists({ _id: assignedToId, organizationId }))) {
+      return NextResponse.json({ error: 'Assigned user does not belong to this workspace.' }, { status: 422 });
+    }
+    const task = await Task.create({
+      title: validation.data.title,
+      dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : null,
+      completed: validation.data.completed ?? false,
+      assignedToId: assignedToId ? new mongoose.Types.ObjectId(assignedToId) : null,
+      organizationId,
+    });
+    return NextResponse.json({
+      id: task._id.toString(),
+      title: task.title,
+      dueDate: task.dueDate,
+      completed: task.completed,
+      organizationId: task.organizationId.toString(),
+      assignedToId: task.assignedToId?.toString() ?? null,
+      createdAt: task.createdAt,
+    }, { status: 201 });
+  } catch (error) {
+    return errorResponse(error, 'Failed to create task.');
   }
 }

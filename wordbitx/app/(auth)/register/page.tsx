@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [setupToken, setSetupToken] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isCreated, setIsCreated] = useState(false);
@@ -34,7 +35,10 @@ export default function RegisterPage() {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Initial-Admin-Setup-Token': setupToken,
+        },
         body: JSON.stringify({ name, email, password }),
       });
       const result = await response.json().catch(() => null) as
@@ -68,7 +72,7 @@ export default function RegisterPage() {
           <CardDescription className="text-slate-400">
             {isCreated
               ? 'Your account is ready. Sign in to manage the WordbitX workspace.'
-              : 'Create the first administrator account for the WordbitX workspace. This one-time setup closes after registration.'}
+              : 'Create the first administrator account using the one-time setup key provided by your platform operator.'}
           </CardDescription>
         </CardHeader>
 
@@ -88,6 +92,22 @@ export default function RegisterPage() {
                 {error}
               </div>
             )}
+
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">One-Time Setup Key *</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                <Input
+                  type="password"
+                  value={setupToken}
+                  onChange={(e) => setSetupToken(e.target.value)}
+                  className="pl-9 bg-slate-900 border-slate-800 text-white placeholder:text-slate-500"
+                  autoComplete="off"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
 
             <div>
               <label className="text-xs font-semibold text-slate-300 block mb-1">Your Full Name *</label>

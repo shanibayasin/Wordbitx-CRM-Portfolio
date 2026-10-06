@@ -85,7 +85,7 @@ export const SignupPage: React.FC = () => {
             Create your WordbitX Workspace
           </h1>
           <p className="text-xs text-slate-500">
-            Create a workspace and administrator account to get started.
+            Create a workspace and owner account to get started.
           </p>
         </div>
 

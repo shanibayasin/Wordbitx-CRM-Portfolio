@@ -17,6 +17,10 @@ export default async function DashboardPage({
   const { segments = [] } = await params;
   const user = await getCurrentUser();
 
+  if (user?.role === 'SUPER_ADMIN') {
+    redirect('/admin');
+  }
+
   if (segments.length === 1 && segments[0] === 'login') {
     redirect(user ? '/dashboard' : '/login');
   }

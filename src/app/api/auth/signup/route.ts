@@ -67,7 +67,7 @@ export async function POST(request: Request) {
               name: validation.data.name,
               email,
               password: await bcrypt.hash(validation.data.password, 12),
-              role: 'ADMIN',
+              role: 'ORGANIZATION_OWNER',
               organizationId: organization._id,
             },
           ],

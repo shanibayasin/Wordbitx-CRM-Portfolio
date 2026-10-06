@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { UpdateQuery } from 'mongoose';
+import mongoose from 'mongoose';
 import connectToDatabase from '../../../../lib/mongodb.ts';
+import { canManageLeads, canViewLeads, requireOrganizationAuth } from '../../../../lib/auth.ts';
+import Customer from '../../../../models/Customer.ts';
+import Deal from '../../../../models/Deal.ts';
 import Order from '../../../../models/Order.ts';
+import User from '../../../../models/User.ts';
 import { orderSchema } from '../../../../lib/validations/orderSchema.ts';
 import { calculateOrderTotals, getNextOrderStatuses, getPaymentStatus } from '../../../../components/orders/orderMath.ts';
 import type { IOrder } from '../../../../models/Order.ts';
@@ -15,10 +20,16 @@ function getReferenceId(value: unknown): string | null {
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
   try {
+    const user = await requireOrganizationAuth();
+    if (!canViewLeads(user.role)) {
+      return NextResponse.json({ error: 'You do not have permission to view orders.' }, { status: 403 });
+    }
+    const { id } = await params;
+    if (!mongoose.isValidObjectId(id)) return NextResponse.json({ error: 'Order id is invalid.' }, { status: 400 });
     await connectToDatabase();
-    const order = await Order.findById(id)
+    const organizationId = new mongoose.Types.ObjectId(user.organizationId);
+    const order = await Order.findOne({ _id: new mongoose.Types.ObjectId(id), organizationId })
       .populate('customerId', 'name company email phone address city state country postalCode')
       .populate('dealId', 'title value stage probability assignedToId expectedCloseDate')
       .populate('salespersonId', 'name email role')
@@ -38,14 +49,36 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
   try {
-    const body = await request.json();
+    const user = await requireOrganizationAuth();
+    if (!canManageLeads(user.role)) {
+      return NextResponse.json({ error: 'You do not have permission to update orders.' }, { status: 403 });
+    }
+    const { id } = await params;
+    if (!mongoose.isValidObjectId(id)) return NextResponse.json({ error: 'Order id is invalid.' }, { status: 400 });
+    const body: Record<string, unknown> = await request.json().catch(() => ({}));
     const parsed = orderSchema.partial().safeParse(body);
-    if (!parsed.success) return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ errors: parsed.error.flatten() }, { status: 422 });
     await connectToDatabase();
-    const current = await Order.findById(id).lean();
+    const organizationId = new mongoose.Types.ObjectId(user.organizationId);
+    const current = await Order.findOne({ _id: new mongoose.Types.ObjectId(id), organizationId }).lean();
     if (!current) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+
+    const customerId = parsed.data.customerId;
+    const dealId = parsed.data.dealId;
+    const salespersonId = parsed.data.salespersonId;
+    if (customerId && (!mongoose.isValidObjectId(customerId) ||
+      !await Customer.exists({ _id: customerId, organizationId }))) {
+      return NextResponse.json({ error: 'Customer does not belong to this workspace.' }, { status: 422 });
+    }
+    if (dealId && (!mongoose.isValidObjectId(dealId) ||
+      !await Deal.exists({ _id: dealId, organizationId }))) {
+      return NextResponse.json({ error: 'Deal does not belong to this workspace.' }, { status: 422 });
+    }
+    if (salespersonId && (!mongoose.isValidObjectId(salespersonId) ||
+      !await User.exists({ _id: salespersonId, organizationId }))) {
+      return NextResponse.json({ error: 'Salesperson does not belong to this workspace.' }, { status: 422 });
+    }
 
     const now = new Date();
     const update: Record<string, unknown> = { ...parsed.data, updatedAt: now, lastActivityAt: now };
@@ -59,7 +92,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (parsed.data.status === 'REFUNDED' && (current.status !== 'COMPLETED' || current.paidAmount <= 0)) {
         return NextResponse.json({ error: 'Only completed orders with recorded payments can be refunded' }, { status: 409 });
       }
-      const actor = typeof body.changedBy === 'string' ? body.changedBy : 'System';
+      const actor = user.name || user.email || 'Workspace user';
       update.activities = [{
         id: `activity_${now.getTime()}`,
         type: parsed.data.status === 'CONFIRMED' ? 'CONFIRMED' : parsed.data.status === 'PROCESSING' ? 'PROCESSING' : parsed.data.status === 'READY' ? 'READY' : parsed.data.status === 'COMPLETED' ? 'COMPLETED' : 'UPDATED',
@@ -96,7 +129,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       update.status = fullyRefunded ? 'REFUNDED' : current.status;
     }
 
-    const updated = await Order.findByIdAndUpdate(id, update as UpdateQuery<IOrder>, { new: true, runValidators: true })
+    const updated = await Order.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id), organizationId },
+      update as UpdateQuery<IOrder>,
+      { new: true, runValidators: true }
+    )
       .populate('customerId', 'name company email phone')
       .populate('dealId', 'title value stage')
       .populate('salespersonId', 'name email')

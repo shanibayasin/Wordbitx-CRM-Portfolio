@@ -1,15 +1,38 @@
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/mongodb.ts';
-import { canViewLeads, requireAuth } from '../../../lib/auth.ts';
+import { canViewLeads, requireOrganizationAuth } from '../../../lib/auth.ts';
 import Customer from '../../../models/Customer.ts';
 import Deal from '../../../models/Deal.ts';
 import Lead from '../../../models/Lead.ts';
 import User from '../../../models/User.ts';
 
+function toObjectIdString(value: unknown): string | null {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'object') {
+    if ('_id' in value && value._id != null) {
+      const nestedId = value._id;
+      return typeof nestedId === 'string' ? nestedId : nestedId.toString();
+    }
+
+    if ('toString' in value && typeof value.toString === 'function') {
+      return value.toString();
+    }
+  }
+
+  return null;
+}
+
 export async function GET() {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canViewLeads(currentUser.role)) {
       return NextResponse.json({ success: false, error: { message: 'You do not have permission to view this pipeline.' } }, { status: 403 });
     }
@@ -44,12 +67,8 @@ export async function GET() {
           ...deal,
           id: deal._id.toString(),
           organizationId: deal.organizationId.toString(),
-          customerId: deal.customerId && typeof deal.customerId === 'object' && '_id' in deal.customerId
-            ? deal.customerId._id.toString()
-            : deal.customerId?.toString() ?? null,
-          assignedToId: deal.assignedToId && typeof deal.assignedToId === 'object' && '_id' in deal.assignedToId
-            ? deal.assignedToId._id.toString()
-            : deal.assignedToId?.toString() ?? null,
+          customerId: toObjectIdString(deal.customerId),
+          assignedToId: toObjectIdString(deal.assignedToId),
         })),
         customers: customers.map((customer) => ({
           id: customer._id.toString(),
@@ -66,7 +85,7 @@ export async function GET() {
           name: user.name,
           email: user.email,
           role: user.role,
-          organizationId: user.organizationId.toString(),
+          organizationId: user.organizationId?.toString() ?? '',
           createdAt: user.createdAt,
         })),
         leadCount,

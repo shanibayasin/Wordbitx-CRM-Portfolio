@@ -1,87 +1,78 @@
+import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/mongodb.ts';
+import { canManageLeads, canViewLeads, requireOrganizationAuth } from '../../../lib/auth.ts';
 import Customer from '../../../models/Customer.ts';
 import Deal from '../../../models/Deal.ts';
 import Ticket from '../../../models/Ticket.ts';
+import User from '../../../models/User.ts';
 import { customerSchema } from '../../../lib/validations/customerSchema.ts';
 
-export async function GET(request: Request) {
+function errorResponse(error: unknown, fallback: string) {
+  const status = (error as Error & { statusCode?: number }).statusCode ?? 500;
+  return NextResponse.json({ error: error instanceof Error ? error.message : fallback }, { status });
+}
+
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const orgId = searchParams.get('organizationId') || 'org_acme';
-
-    try {
-      await connectToDatabase();
-      const customers = await Customer.find({ organizationId: orgId })
-        .sort({ createdAt: -1 })
-        .lean();
-
-      // Attach deals & tickets count or data
-      const customerIds = customers.map((c) => c._id);
-      const deals = await Deal.find({ customerId: { $in: customerIds } }).lean();
-      const tickets = await Ticket.find({ customerId: { $in: customerIds } }).lean();
-
-      const formatted = customers.map((c) => ({
-        ...c,
-        id: c._id.toString(),
-        organizationId: c.organizationId.toString(),
-        deals: deals.filter((d) => d.customerId?.toString() === c._id.toString()),
-        tickets: tickets.filter((t) => t.customerId?.toString() === c._id.toString()),
-      }));
-
-      return NextResponse.json(formatted);
-    } catch {
-      return NextResponse.json([]);
+    const user = await requireOrganizationAuth();
+    if (!canViewLeads(user.role)) {
+      return NextResponse.json({ error: 'You do not have permission to view customers.' }, { status: 403 });
     }
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to fetch customers' }, { status: 500 });
+    await connectToDatabase();
+    const organizationId = new mongoose.Types.ObjectId(user.organizationId);
+    const customers = await Customer.find({ organizationId }).sort({ createdAt: -1 }).lean();
+    const customerIds = customers.map((customer) => customer._id);
+    const [deals, tickets] = await Promise.all([
+      Deal.find({ organizationId, customerId: { $in: customerIds } }).lean(),
+      Ticket.find({ organizationId, customerId: { $in: customerIds } }).lean(),
+    ]);
+
+    return NextResponse.json(customers.map((customer) => ({
+      ...customer,
+      id: customer._id.toString(),
+      organizationId: customer.organizationId.toString(),
+      deals: deals.filter((deal) => deal.customerId?.toString() === customer._id.toString()),
+      tickets: tickets.filter((ticket) => ticket.customerId?.toString() === customer._id.toString()),
+    })));
+  } catch (error) {
+    return errorResponse(error, 'Failed to fetch customers.');
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const orgId = body.organizationId || 'org_acme';
-
+    const user = await requireOrganizationAuth();
+    if (!canManageLeads(user.role)) {
+      return NextResponse.json({ error: 'You do not have permission to create customers.' }, { status: 403 });
+    }
+    const body: unknown = await request.json().catch(() => null);
     const validation = customerSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json({ errors: validation.error.flatten() }, { status: 400 });
+      return NextResponse.json({ errors: validation.error.flatten() }, { status: 422 });
     }
 
-    try {
-      await connectToDatabase();
-      const newCustomer = await Customer.create({
-        ...validation.data,
-        avatarUrl: validation.data.avatarUrl || null,
-        organizationId: orgId,
-      });
-
-      return NextResponse.json(
-        {
-          id: newCustomer._id.toString(),
-          ...validation.data,
-          organizationId: orgId,
-          createdAt: newCustomer.createdAt,
-          updatedAt: newCustomer.updatedAt,
-          deals: [],
-          tickets: [],
-        },
-        { status: 201 }
-      );
-    } catch {
-      return NextResponse.json(
-        {
-          id: `cust_${Date.now()}`,
-          ...validation.data,
-          organizationId: orgId,
-          createdAt: new Date(),
-          deals: [],
-          tickets: [],
-        },
-        { status: 201 }
-      );
+    await connectToDatabase();
+    const organizationId = new mongoose.Types.ObjectId(user.organizationId);
+    const assignedToId = validation.data.assignedToId;
+    if (assignedToId && (!mongoose.isValidObjectId(assignedToId) ||
+      !await User.exists({ _id: assignedToId, organizationId }))) {
+      return NextResponse.json({ error: 'Assigned user does not belong to this workspace.' }, { status: 422 });
     }
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to create customer' }, { status: 500 });
+    const customer = await Customer.create({
+      ...validation.data,
+      assignedToId: assignedToId || null,
+      avatarUrl: validation.data.avatarUrl || null,
+      organizationId,
+    });
+    return NextResponse.json({
+      ...customer.toObject(),
+      id: customer._id.toString(),
+      organizationId: customer.organizationId.toString(),
+      deals: [],
+      tickets: [],
+    }, { status: 201 });
+  } catch (error) {
+    return errorResponse(error, 'Failed to create customer.');
   }
 }

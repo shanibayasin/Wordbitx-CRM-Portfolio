@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectToDatabase from '../../../../lib/mongodb.ts';
-import { canManageLeads, canViewLeads, requireAuth } from '../../../../lib/auth.ts';
+import { canManageLeads, canViewLeads, requireOrganizationAuth } from '../../../../lib/auth.ts';
 import Lead from '../../../../models/Lead.ts';
 import User from '../../../../models/User.ts';
 import { leadSchema } from '../../../../lib/validations/leadSchema.ts';
@@ -24,7 +24,7 @@ function serializeLead(input: unknown) {
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     const { id } = await params;
 
     if (!canViewLeads(currentUser.role)) {
@@ -59,7 +59,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     const { id } = await params;
 
     if (!canManageLeads(currentUser.role)) {
@@ -136,7 +136,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     const { id } = await params;
 
     if (!canManageLeads(currentUser.role)) {

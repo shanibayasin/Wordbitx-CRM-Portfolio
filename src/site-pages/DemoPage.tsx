@@ -20,11 +20,13 @@ export const DemoPage: React.FC = () => {
       name: '',
       email: '',
       company: '',
+      phone: '',
       teamSize: '5-20',
       role: 'Head of Sales',
       features: ['Sales Pipeline & Kanban', 'AI Follow-up Assistant'],
-      date: formatLocalDate(preferredDate),
-      notes: '',
+      preferredDate: formatLocalDate(preferredDate),
+      preferredTime: '10:00',
+      message: '',
     };
   });
 
@@ -59,11 +61,13 @@ export const DemoPage: React.FC = () => {
           name: formData.name,
           email: formData.email,
           company: formData.company,
+          phone: formData.phone,
           teamSize: formData.teamSize,
           role: formData.role,
           features: formData.features,
-          date: formData.date,
-          notes: formData.notes,
+          preferredDate: formData.preferredDate,
+          preferredTime: formData.preferredTime,
+          message: formData.message,
         }),
       });
       const result = await response.json().catch(() => null) as { success?: boolean; error?: string } | null;
@@ -113,7 +117,7 @@ export const DemoPage: React.FC = () => {
               </div>
 
               <div className="p-4 max-w-md mx-auto rounded-xl bg-slate-50 dark:bg-[#0e2722] border border-slate-200 dark:border-[#183932] text-xs text-left space-y-1">
-                <div><strong>Selected date:</strong> {formData.date}</div>
+                <div><strong>Preferred date and time:</strong> {formData.preferredDate} at {formData.preferredTime}</div>
                 <div><strong>Focus areas:</strong> {formData.features.join(', ') || 'None selected'}</div>
               </div>
 
@@ -183,6 +187,23 @@ export const DemoPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                     placeholder="Company Inc."
                     maxLength={120}
+                    disabled={isSubmitting}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    aria-label="Phone number"
+                    autoComplete="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+1 555 010 1234"
+                    maxLength={40}
                     disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
@@ -266,8 +287,8 @@ export const DemoPage: React.FC = () => {
                   <input
                     type="date"
                     required
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    value={formData.preferredDate}
+                    onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
                     min={formatLocalDate(new Date())}
                     disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
@@ -276,18 +297,33 @@ export const DemoPage: React.FC = () => {
 
                 <div>
                   <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Additional notes / questions
+                    Preferred Demo Time *
                   </label>
                   <input
-                    type="text"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Specific questions about phone systems or migrations..."
-                    maxLength={2000}
+                    type="time"
+                    required
+                    value={formData.preferredTime}
+                    onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
                     disabled={isSubmitting}
                     className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
                   />
                 </div>
+              </div>
+
+              <div>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                    What would you like us to cover? *
+                  </label>
+                  <textarea
+                    required
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Tell us about your goals, questions, or anything you'd like to see..."
+                    maxLength={2000}
+                    rows={4}
+                    disabled={isSubmitting}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600 resize-y"
+                  />
               </div>
 
               <div className="pt-4">

@@ -1,13 +1,23 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export type UserRole = 'ADMIN' | 'SALES' | 'SUPPORT' | 'AGENT';
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'ORGANIZATION_OWNER'
+  | 'ORGANIZATION_ADMIN'
+  | 'SALES_MANAGER'
+  | 'SALES_AGENT'
+  | 'VIEWER'
+  | 'ADMIN'
+  | 'SALES'
+  | 'SUPPORT'
+  | 'AGENT';
 
 export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
   role: UserRole;
-  organizationId: mongoose.Types.ObjectId;
+  organizationId?: mongoose.Types.ObjectId | null;
   avatarUrl?: string;
   createdAt: Date;
 }
@@ -32,13 +42,26 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['ADMIN', 'SALES', 'SUPPORT', 'AGENT'],
+      enum: [
+        'SUPER_ADMIN',
+        'ORGANIZATION_OWNER',
+        'ORGANIZATION_ADMIN',
+        'SALES_MANAGER',
+        'SALES_AGENT',
+        'VIEWER',
+        'ADMIN',
+        'SALES',
+        'SUPPORT',
+        'AGENT',
+      ],
       default: 'SALES',
     },
     organizationId: {
       type: Schema.Types.ObjectId,
       ref: 'Organization',
-      required: true,
+      required: function (this: IUser) {
+        return this.role !== 'SUPER_ADMIN';
+      },
     },
     avatarUrl: {
       type: String,

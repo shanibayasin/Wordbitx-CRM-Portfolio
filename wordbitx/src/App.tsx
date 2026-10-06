@@ -9,6 +9,7 @@ import { Toaster, toast } from '../components/ui/Sonner.tsx';
 import { StatsCard } from '../components/dashboard/StatsCard.tsx';
 import { RevenueChart } from '../components/dashboard/RevenueChart.tsx';
 import { PipelineChart } from '../components/dashboard/PipelineChart.tsx';
+import { DemoRequestsPanel } from '../components/dashboard/DemoRequestsPanel.tsx';
 import { LeadTable } from '../components/leads/LeadTable.tsx';
 import { LeadForm } from '../components/leads/LeadForm.tsx';
 import { SalesPipeline } from '../components/pipeline/SalesPipeline.tsx';
@@ -1173,6 +1174,10 @@ function LegacyPreviewApp({ navigationBase }: { navigationBase: '' | '/dashboard
                     </Button>
                   </CardContent>
                 </Card>
+              )}
+
+              {['ADMIN', 'ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN'].includes(dashboardStats?.workspace.user.role ?? '') && (
+                <DemoRequestsPanel />
               )}
 
               {dashboardStatus === 'loading' && (

@@ -5,7 +5,7 @@ export interface ITask extends Document {
   dueDate?: Date | null;
   completed: boolean;
   organizationId: mongoose.Types.ObjectId;
-  assignedToId?: mongoose.Types.ObjectId;
+  assignedToId?: mongoose.Types.ObjectId | null;
   createdAt: Date;
 }
 

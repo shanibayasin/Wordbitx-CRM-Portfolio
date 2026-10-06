@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/mongodb.ts';
-import { canManageLeads, canViewLeads, requireAuth } from '../../../lib/auth.ts';
+import { canManageLeads, canViewLeads, requireOrganizationAuth } from '../../../lib/auth.ts';
 import Customer from '../../../models/Customer.ts';
 import Deal from '../../../models/Deal.ts';
 import User from '../../../models/User.ts';
@@ -30,7 +30,7 @@ function serializeDeal(input: unknown) {
 
 export async function GET() {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canViewLeads(currentUser.role)) {
       return jsonError('You do not have permission to view deals.', 403, 'FORBIDDEN');
     }
@@ -56,7 +56,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canManageLeads(currentUser.role)) {
       return jsonError('You do not have permission to create deals.', 403, 'FORBIDDEN');
     }

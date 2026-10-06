@@ -1,4 +1,14 @@
-export type Role = 'ADMIN' | 'SALES' | 'SUPPORT' | 'AGENT';
+export type Role =
+  | 'SUPER_ADMIN'
+  | 'ORGANIZATION_OWNER'
+  | 'ORGANIZATION_ADMIN'
+  | 'SALES_MANAGER'
+  | 'SALES_AGENT'
+  | 'VIEWER'
+  | 'ADMIN'
+  | 'SALES'
+  | 'SUPPORT'
+  | 'AGENT';
 
 export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'CONVERTED' | 'LOST' | 'FOLLOW_UP';
 

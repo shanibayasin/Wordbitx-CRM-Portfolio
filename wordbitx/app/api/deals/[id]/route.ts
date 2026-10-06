@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import connectToDatabase from '../../../../lib/mongodb.ts';
-import { canManageLeads, canViewLeads, requireAuth } from '../../../../lib/auth.ts';
+import { canManageLeads, canViewLeads, requireOrganizationAuth } from '../../../../lib/auth.ts';
 import Customer from '../../../../models/Customer.ts';
 import Deal from '../../../../models/Deal.ts';
 import User from '../../../../models/User.ts';
@@ -82,7 +82,7 @@ async function getScopedDeal(id: string, organizationId: mongoose.Types.ObjectId
 
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canViewLeads(currentUser.role)) return jsonError('You do not have permission to view deals.', 403, 'FORBIDDEN');
     const { id } = await params;
     if (!mongoose.isValidObjectId(currentUser.organizationId) || !mongoose.isValidObjectId(id)) {
@@ -109,7 +109,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
 async function updateDeal(request: Request, { params }: RouteContext) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canManageLeads(currentUser.role)) return jsonError('You do not have permission to update deals.', 403, 'FORBIDDEN');
     const { id } = await params;
     if (!mongoose.isValidObjectId(currentUser.organizationId) || !mongoose.isValidObjectId(id)) {
@@ -231,7 +231,7 @@ async function updateDeal(request: Request, { params }: RouteContext) {
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canManageLeads(currentUser.role)) return jsonError('You do not have permission to delete deals.', 403, 'FORBIDDEN');
     const { id } = await params;
     if (!mongoose.isValidObjectId(currentUser.organizationId) || !mongoose.isValidObjectId(id)) {

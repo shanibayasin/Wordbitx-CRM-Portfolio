@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/mongodb.ts';
-import { canViewLeads, requireAuth } from '../../../lib/auth.ts';
+import { canViewLeads, requireOrganizationAuth } from '../../../lib/auth.ts';
 import User from '../../../models/User.ts';
 
 export async function GET() {
   try {
-    const currentUser = await requireAuth();
+    const currentUser = await requireOrganizationAuth();
     if (!canViewLeads(currentUser.role)) {
       return NextResponse.json({ success: false, error: { message: 'You do not have permission to view workspace users.' } }, { status: 403 });
     }
@@ -28,7 +28,7 @@ export async function GET() {
         name: user.name,
         email: user.email,
         role: user.role,
-        organizationId: user.organizationId.toString(),
+        organizationId: user.organizationId?.toString() ?? '',
         createdAt: user.createdAt,
       })),
     });

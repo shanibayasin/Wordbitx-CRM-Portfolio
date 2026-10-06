@@ -46,7 +46,7 @@ function isAllowedOrigin(origin: string | null) {
 
 export async function OPTIONS(request: Request) {
   const origin = request.headers.get('origin');
-  if (!isAllowedOrigin(origin)) {
+  if (!origin || !isAllowedOrigin(origin)) {
     return NextResponse.json({ success: false, error: 'Origin is not allowed.' }, { status: 403 });
   }
 
@@ -55,7 +55,7 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
-  if (!isAllowedOrigin(origin)) {
+  if (!origin || !isAllowedOrigin(origin)) {
     return NextResponse.json({ success: false, error: 'Origin is not allowed.' }, { status: 403 });
   }
 
