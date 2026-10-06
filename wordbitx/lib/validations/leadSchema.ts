@@ -4,7 +4,7 @@ export const leadSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required' }).trim().optional().or(z.literal('')),
   lastName: z.string().min(1, { message: 'Last name is required' }).trim().optional().or(z.literal('')),
   name: z.string().min(2, { message: 'Lead name must be at least 2 characters' }).trim(),
-  company: z.string().min(1, { message: 'Company is required' }).trim().optional().or(z.literal('')),
+  company: z.string().trim().max(160, { message: 'Company name cannot exceed 160 characters' }).optional().or(z.literal('')),
   email: z.string().email({ message: 'Invalid email address' }).optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   alternatePhone: z.string().optional().or(z.literal('')),

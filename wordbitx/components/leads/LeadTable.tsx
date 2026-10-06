@@ -190,7 +190,7 @@ export function LeadTable({
                           <span>{lead.phone}</span>
                         </div>
                       )}
-                      {lead.company && <div className="truncate">{lead.company}</div>}
+                      {lead.company && <div className="truncate"><span className="font-medium">Company:</span> {lead.company}</div>}
                       {lead.notes && (
                         <p className="line-clamp-2 pt-1 text-[11px] text-slate-500 dark:text-slate-400" title={lead.notes}>
                           {lead.notes}
@@ -285,6 +285,11 @@ export function LeadTable({
                             </span>
                           )}
                         </div>
+                        {lead.company && (
+                          <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            Company: {lead.company}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>{getStatusBadge(lead.status)}</TableCell>
                       <TableCell>

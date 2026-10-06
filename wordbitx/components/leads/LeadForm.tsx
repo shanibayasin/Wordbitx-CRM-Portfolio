@@ -18,6 +18,7 @@ interface LeadFormProps {
 
 type LeadFormState = {
   name: string;
+  company: string;
   email: string;
   phone: string;
   source: string;
@@ -29,6 +30,7 @@ type LeadFormState = {
 function initialLeadFormData(lead?: Lead | null): LeadFormState {
   return {
     name: lead?.name || '',
+    company: lead?.company || '',
     email: lead?.email || '',
     phone: lead?.phone || '',
     source: lead?.source || 'Website',
@@ -109,6 +111,19 @@ export function LeadForm({ open, onOpenChange, onSubmit, lead, users }: LeadForm
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               error={errors.name}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+              Company
+            </label>
+            <Input
+              placeholder="e.g. Acme Corporation"
+              maxLength={160}
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              error={errors.company}
             />
           </div>
 

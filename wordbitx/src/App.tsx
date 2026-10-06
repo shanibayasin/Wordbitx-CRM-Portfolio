@@ -1441,6 +1441,10 @@ function LegacyPreviewApp({
                       <CardContent className="space-y-4 sm:space-y-6 pt-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                           <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
+                            <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+                            <span className="truncate">Company: {lead.company || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
                             <Mail className="h-4 w-4 text-slate-400 shrink-0" />
                             <span className="truncate">{lead.email || 'N/A'}</span>
                           </div>

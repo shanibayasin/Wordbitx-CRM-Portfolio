@@ -40,13 +40,15 @@ function corsHeaders(origin: string) {
   };
 }
 
-function isAllowedOrigin(origin: string | null) {
-  return origin !== null && allowedOrigins().includes(origin);
+function isAllowedOrigin(origin: string | null, requestUrl: string) {
+  if (!origin) return false;
+  if (origin === new URL(requestUrl).origin) return true;
+  return allowedOrigins().includes(origin);
 }
 
 export async function OPTIONS(request: Request) {
   const origin = request.headers.get('origin');
-  if (!origin || !isAllowedOrigin(origin)) {
+  if (origin === null || !isAllowedOrigin(origin, request.url)) {
     return NextResponse.json({ success: false, error: 'Origin is not allowed.' }, { status: 403 });
   }
 
@@ -55,7 +57,7 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
-  if (!origin || !isAllowedOrigin(origin)) {
+  if (origin === null || !isAllowedOrigin(origin, request.url)) {
     return NextResponse.json({ success: false, error: 'Origin is not allowed.' }, { status: 403 });
   }
 

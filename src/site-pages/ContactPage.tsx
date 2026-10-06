@@ -27,15 +27,8 @@ export const ContactPage: React.FC = () => {
     setErrorMessage('');
     setIsSubmitting(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_CRM_API_URL;
-    if (!apiUrl) {
-      setErrorMessage('Contact requests are not configured right now. Please contact us by email.');
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/public/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

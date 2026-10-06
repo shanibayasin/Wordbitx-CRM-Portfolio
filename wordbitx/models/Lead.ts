@@ -58,6 +58,7 @@ const LeadSchema = new Schema<ILead>(
     company: {
       type: String,
       trim: true,
+      maxlength: [160, 'Company name cannot exceed 160 characters'],
       default: null,
     },
     email: {
