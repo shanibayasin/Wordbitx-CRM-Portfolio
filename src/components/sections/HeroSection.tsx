@@ -57,7 +57,7 @@ export const HeroSection: React.FC = () => {
 
           {/* Preview disclosure */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400 pt-1">
-            <span>Portfolio preview · Start Free creates a real workspace; demo requests are not submitted</span>
+            <span>Portfolio preview · Start Free submits a workspace request for admin approval</span>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import connectToDatabase from '../../../../lib/mongodb.ts';
+import { isConfiguredPlatformAdminEmail } from '../../../../lib/auth.ts';
 import Organization from '../../../../models/Organization.ts';
 import User from '../../../../models/User.ts';
 
@@ -47,6 +48,13 @@ export async function POST(request: Request) {
         fieldErrors: validation.error.flatten().fieldErrors,
       },
       { status: 422 }
+    );
+  }
+
+  if (isConfiguredPlatformAdminEmail(validation.data.email)) {
+    return NextResponse.json(
+      { success: false, error: 'This email is reserved for platform administrator setup.' },
+      { status: 409 }
     );
   }
 

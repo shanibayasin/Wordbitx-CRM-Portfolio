@@ -1,120 +1,94 @@
-import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import Organization from '../../../../../wordbitx/models/Organization';
+import { isConfiguredPlatformAdminEmail } from '../../../../../wordbitx/lib/auth';
 import User from '../../../../../wordbitx/models/User';
+import WorkspaceRequest from '../../../../../wordbitx/models/WorkspaceRequest';
 
-const signupSchema = z
-  .object({
-    name: z.string().trim().min(2, 'Enter your full name.').max(120, 'Name is too long.'),
-    email: z.string().trim().email('Enter a valid email address.').max(254, 'Email address is too long.'),
-    password: z.string().min(12, 'Password must be at least 12 characters.').max(128, 'Password is too long.'),
-    companyName: z.string().trim().min(2, 'Enter your company name.').max(120, 'Company name is too long.'),
-  })
-  .strict();
+const requestSchema = z.object({
+  name: z.string().trim().min(2, 'Enter your full name.').max(120, 'Name is too long.'),
+  email: z.string().trim().email('Enter a valid email address.').max(254, 'Email address is too long.'),
+  companyName: z.string().trim().min(2, 'Enter your company name.').max(120, 'Company name is too long.'),
+}).strict();
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ success: false, error: message }, { status });
+}
 
 export async function POST(request: Request) {
+  const origin = request.headers.get('origin');
+  if (!origin || origin !== new URL(request.url).origin) {
+    return jsonError('Request origin is not allowed.', 403);
+  }
+
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
-    return NextResponse.json({ success: false, error: 'Content-Type must be application/json.' }, { status: 415 });
+    return jsonError('Content-Type must be application/json.', 415);
   }
 
-  let body: unknown;
+  const contentLength = Number(request.headers.get('content-length') ?? 0);
+  if (contentLength > 8192) {
+    return jsonError('Request body is too large.', 413);
+  }
+
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    const body = await request.text();
+    if (Buffer.byteLength(body, 'utf8') > 8192) {
+      return jsonError('Request body is too large.', 413);
+    }
+    rawBody = JSON.parse(body);
   } catch {
-    return NextResponse.json({ success: false, error: 'Request body must be valid JSON.' }, { status: 400 });
+    return jsonError('Request body must be valid JSON.', 400);
   }
 
-  const validation = signupSchema.safeParse(body);
+  const validation = requestSchema.safeParse(rawBody);
   if (!validation.success) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Please check the submitted information.',
-        fieldErrors: validation.error.flatten().fieldErrors,
-      },
-      { status: 422 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: 'Please check the submitted information.',
+      fieldErrors: validation.error.flatten().fieldErrors,
+    }, { status: 422 });
   }
 
-  let stage = 'database connection';
+  const email = validation.data.email.toLowerCase();
+  if (isConfiguredPlatformAdminEmail(email)) {
+    return jsonError('This email is reserved for platform administrator access.', 409);
+  }
+
   try {
     await connectToDatabase();
-    stage = 'starting registration transaction';
-    const session = await User.db.startSession();
-    let userId: string | undefined;
-
-    try {
-      stage = 'registering workspace and administrator';
-      await session.withTransaction(async () => {
-        const email = validation.data.email.toLowerCase();
-        stage = 'checking email availability';
-        const existingUser = await User.findOne({ email }).session(session).select('_id').lean();
-        if (existingUser) {
-          throw new Error('EMAIL_ALREADY_REGISTERED');
-        }
-
-        stage = 'creating workspace';
-        const [organization] = await Organization.create(
-          [{ name: validation.data.companyName }],
-          { session }
-        );
-        stage = 'creating administrator';
-        const [user] = await User.create(
-          [
-            {
-              name: validation.data.name,
-              email,
-              password: await bcrypt.hash(validation.data.password, 12),
-              role: 'ORGANIZATION_OWNER',
-              organizationId: organization._id,
-            },
-          ],
-          { session }
-        );
-
-        stage = 'linking workspace administrator';
-        await Organization.updateOne(
-          { _id: organization._id },
-          { $set: { initialAdminId: user._id } },
-          { session }
-        );
-        userId = user._id.toString();
-      });
-    } finally {
-      await session.endSession();
+    const existingUser = await User.findOne({ email }).select('_id').lean();
+    if (existingUser) {
+      return jsonError('An account with this email already exists. Please sign in instead.', 409);
     }
 
-    if (!userId) {
-      throw new Error('WORKSPACE_SIGNUP_FAILED');
+    const existingRequest = await WorkspaceRequest.findOne({
+      email,
+      status: { $in: ['NEW', 'INVITE_PENDING', 'INVITE_SENT'] },
+    }).select('_id').lean();
+    if (existingRequest) {
+      return jsonError('A workspace request for this email is already awaiting action.', 409);
     }
 
-    return NextResponse.json({ success: true, data: { id: userId } }, { status: 201 });
+    const workspaceRequest = await WorkspaceRequest.create({
+      ...validation.data,
+      email,
+      activeRequestEmail: email,
+    });
+
+    return NextResponse.json(
+      { success: true, data: { id: workspaceRequest._id.toString(), status: workspaceRequest.status } },
+      { status: 201 }
+    );
   } catch (error) {
-    if (error instanceof Error && error.message === 'EMAIL_ALREADY_REGISTERED') {
-      return NextResponse.json(
-        { success: false, error: 'An account with this email already exists. Please sign in instead.' },
-        { status: 409 }
-      );
-    }
-
     const details = error as { name?: string; code?: string | number };
     if (details.code === 11000) {
-      return NextResponse.json(
-        { success: false, error: 'An account with this email already exists. Please sign in instead.' },
-        { status: 409 }
-      );
+      return jsonError('A workspace request for this email is already awaiting action.', 409);
     }
-
-    console.error('[auth-signup] Workspace creation failed.', {
+    console.error('[workspace-request] Failed to save workspace request.', {
       name: details.name ?? 'Error',
       code: details.code ?? 'unavailable',
-      stage,
     });
-    return NextResponse.json(
-      { success: false, error: 'Workspace creation could not be completed. Please try again later.' },
-      { status: 503 }
-    );
+    return jsonError('Your workspace request could not be submitted. Please try again later.', 503);
   }
 }

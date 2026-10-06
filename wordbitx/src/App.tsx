@@ -135,7 +135,22 @@ const SEED_TASKS: Task[] = [
 type CreateDealInput = Pick<DealFormValues, 'title' | 'value' | 'stage' | 'probability'>
   & Partial<Omit<DealFormValues, 'title' | 'value' | 'stage' | 'probability'>>;
 
-export default function App({ children }: { children?: ReactNode }) {
+interface WorkspaceIdentity {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  organizationId: string;
+  organizationName: string;
+}
+
+export default function App({
+  children,
+  workspaceIdentity,
+}: {
+  children?: ReactNode;
+  workspaceIdentity?: WorkspaceIdentity;
+}) {
   const pathname = usePathname();
   if (children !== undefined && /^\/(?:dashboard\/)?leads(?:\/[^/]+)?$/.test(pathname)) {
     return (
@@ -146,10 +161,21 @@ export default function App({ children }: { children?: ReactNode }) {
     );
   }
 
-  return <LegacyPreviewApp navigationBase={children === undefined ? '/dashboard' : ''} />;
+  return (
+    <LegacyPreviewApp
+      navigationBase={children === undefined ? '/dashboard' : ''}
+      workspaceIdentity={workspaceIdentity}
+    />
+  );
 }
 
-function LegacyPreviewApp({ navigationBase }: { navigationBase: '' | '/dashboard' }) {
+function LegacyPreviewApp({
+  navigationBase,
+  workspaceIdentity,
+}: {
+  navigationBase: '' | '/dashboard';
+  workspaceIdentity?: WorkspaceIdentity;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const crmPath = pathname.replace(/^\/dashboard(?=\/|$)/, '') || '/dashboard';
@@ -253,17 +279,43 @@ function LegacyPreviewApp({ navigationBase }: { navigationBase: '' | '/dashboard
   }, [activeView, isPipelineView, pipelineReloadKey]);
 
   // Multi-Tenancy State
-  const [organizations] = useState<Organization[]>(SEED_ORGS);
-  const [currentOrgId, setCurrentOrgId] = useState('org_acme');
+  const [organizations] = useState<Organization[]>(() => workspaceIdentity
+    ? [{
+      id: workspaceIdentity.organizationId,
+      name: workspaceIdentity.organizationName,
+      createdAt: new Date(0),
+    }]
+    : SEED_ORGS);
+  const [currentOrgId, setCurrentOrgId] = useState(
+    workspaceIdentity?.organizationId ?? 'org_acme'
+  );
 
   // Core Data Collections (Scoping by Organization)
-  const [users, setUsers] = useState<User[]>(SEED_USERS);
-  const [leads, setLeads] = useState<Lead[]>(SEED_LEADS);
-  const [deals, setDeals] = useLocalStorageState('wordbitx:deals', SEED_DEALS);
-  const [customers, setCustomers] = useLocalStorageState('wordbitx:customers', SEED_CUSTOMERS);
-  const [tickets, setTickets] = useState<Ticket[]>(SEED_TICKETS);
-  const [tasks, setTasks] = useState<Task[]>(SEED_TASKS);
-  const [orders, setOrders] = useLocalStorageState<Order[]>('wordbitx:orders', []);
+  const [users, setUsers] = useState<User[]>(() => workspaceIdentity
+    ? [{
+      id: workspaceIdentity.id,
+      name: workspaceIdentity.name,
+      email: workspaceIdentity.email,
+      role: workspaceIdentity.role,
+      organizationId: workspaceIdentity.organizationId,
+      createdAt: new Date(0),
+    }]
+    : SEED_USERS);
+  const [leads, setLeads] = useState<Lead[]>(workspaceIdentity ? [] : SEED_LEADS);
+  const [deals, setDeals] = useLocalStorageState(
+    workspaceIdentity ? `wordbitx:deals:${workspaceIdentity.organizationId}` : 'wordbitx:deals',
+    workspaceIdentity ? [] : SEED_DEALS
+  );
+  const [customers, setCustomers] = useLocalStorageState(
+    workspaceIdentity ? `wordbitx:customers:${workspaceIdentity.organizationId}` : 'wordbitx:customers',
+    workspaceIdentity ? [] : SEED_CUSTOMERS
+  );
+  const [tickets, setTickets] = useState<Ticket[]>(workspaceIdentity ? [] : SEED_TICKETS);
+  const [tasks, setTasks] = useState<Task[]>(workspaceIdentity ? [] : SEED_TASKS);
+  const [orders, setOrders] = useLocalStorageState<Order[]>(
+    workspaceIdentity ? `wordbitx:orders:${workspaceIdentity.organizationId}` : 'wordbitx:orders',
+    []
+  );
 
   // Modals State
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
@@ -287,7 +339,7 @@ function LegacyPreviewApp({ navigationBase }: { navigationBase: '' | '/dashboard
 
   // Authentication State
   const currentOrg = organizations.find((o) => o.id === currentOrgId) || organizations[0];
-  const currentUser: User = users.find((u) => u.organizationId === currentOrgId) || users[0];
+  const currentUser = users.find((u) => u.organizationId === currentOrgId) || users[0];
 
   // Filter scoped data by current logged-in organization
   const scopedLeads = leads.filter((l) => l.organizationId === currentOrgId);
@@ -1051,10 +1103,17 @@ function LegacyPreviewApp({ navigationBase }: { navigationBase: '' | '/dashboard
             organizationName: currentOrg?.name || 'Acme Technologies Inc.',
           }}
         onLogout={() => {
-          void import('next-auth/react').then(({ signOut }) =>
-            signOut({ callbackUrl: '/login' }),
-          );
-        }}
+            void (async () => {
+              try {
+                const { signOut } = await import('next-auth/react');
+                await signOut({ callbackUrl: '/login', redirect: false });
+                router.replace('/login');
+                router.refresh();
+              } catch {
+                toast.error('Could not sign out. Please try again.');
+              }
+            })();
+          }}
       />
 
       {/* Main Body with bottom padding for mobile navigation bar */}
@@ -1176,9 +1235,9 @@ function LegacyPreviewApp({ navigationBase }: { navigationBase: '' | '/dashboard
                 </Card>
               )}
 
-              {['ADMIN', 'ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN'].includes(dashboardStats?.workspace.user.role ?? '') && (
-                <DemoRequestsPanel />
-              )}
+              {['ADMIN', 'ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN'].includes(
+                dashboardStats?.workspace.user.role ?? ''
+              ) && <DemoRequestsPanel />}
 
               {dashboardStatus === 'loading' && (
                 <>

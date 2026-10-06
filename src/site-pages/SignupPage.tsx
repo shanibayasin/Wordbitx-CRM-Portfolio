@@ -2,28 +2,24 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { ArrowRight, Building, Lock, Mail, User } from 'lucide-react';
+import { ArrowRight, Building, Mail, User, CircleCheck } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const SignupPage: React.FC = () => {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    password: '',
     companyName: '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [requestSubmitted, setRequestSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    let workspaceCreated = false;
 
     try {
       const response = await fetch('/api/auth/signup', {
@@ -32,7 +28,6 @@ export const SignupPage: React.FC = () => {
         body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
-          password: formData.password,
           companyName: formData.companyName,
         }),
       });
@@ -42,32 +37,14 @@ export const SignupPage: React.FC = () => {
 
       if (!response.ok || !result?.success) {
         const fieldErrors = Object.values(result?.fieldErrors ?? {}).flat();
-        setError(fieldErrors.join(' ') || result?.error || 'Unable to create your workspace. Please try again.');
+        setError(fieldErrors.join(' ') || result?.error || 'Unable to submit your workspace request. Please try again.');
         return;
       }
 
-      workspaceCreated = true;
-      const signInResult = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-        callbackUrl: '/dashboard',
-      });
-
-      if (!signInResult?.ok) {
-        setError('Your workspace was created, but automatic sign-in failed. Please use Sign in to continue.');
-        return;
-      }
-
-      router.replace('/dashboard');
-      router.refresh();
+      setRequestSubmitted(true);
     } catch (signupError) {
-      console.error('Workspace signup request failed', signupError);
-      setError(
-        workspaceCreated
-          ? 'Your workspace was created, but automatic sign-in failed. Please use Sign in to continue.'
-          : 'Unable to reach the signup service. Please try again.'
-      );
+      console.error('Workspace request submission failed', signupError);
+      setError('Unable to reach the request service. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -82,14 +59,25 @@ export const SignupPage: React.FC = () => {
             W
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
-            Create your WordbitX Workspace
+            Request a WordbitX Workspace
           </h1>
           <p className="text-xs text-slate-500">
-            Create a workspace and owner account to get started.
+            Submit your workspace details for administrator approval.
           </p>
         </div>
 
-        {/* Signup Card */}
+        {requestSubmitted ? (
+          <div className="bg-white dark:bg-[#0b1f1b] rounded-2xl border border-emerald-200 dark:border-emerald-900 shadow-xl p-6 sm:p-8 text-center space-y-4">
+            <CircleCheck className="mx-auto h-10 w-10 text-emerald-600" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Request sent for review</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              If approved, we’ll email {formData.email} a secure one-time link to set your password and activate your workspace.
+            </p>
+            <Link href="/" className="inline-flex text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">
+              Back to home
+            </Link>
+          </div>
+        ) : (
         <div className="bg-white dark:bg-[#0b1f1b] rounded-2xl border border-slate-200/80 dark:border-[#183932] shadow-xl p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             {error && (
@@ -140,28 +128,6 @@ export const SignupPage: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Password *
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="password"
-                    aria-label="Password"
-                    required
-                    minLength={12}
-                    maxLength={128}
-                    autoComplete="new-password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="At least 12 characters"
-                    disabled={isLoading}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-[#183932] bg-white dark:bg-[#071714] text-slate-900 dark:text-white focus:outline-emerald-600"
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div>
                   <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
@@ -186,7 +152,7 @@ export const SignupPage: React.FC = () => {
               </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Your password must be at least 12 characters long.
+              No account or workspace is created until an administrator approves your request.
             </p>
 
               <div className="pt-2">
@@ -199,7 +165,7 @@ export const SignupPage: React.FC = () => {
                   className="w-full justify-center bg-[#0b1f1b] hover:bg-[#12332c] border-transparent text-white"
                   iconRight={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isLoading ? 'Creating Workspace…' : 'Start Free'}
+                  {isLoading ? 'Sending Request…' : 'Send Workspace Request'}
                 </Button>
               </div>
 
@@ -214,6 +180,7 @@ export const SignupPage: React.FC = () => {
               </div>
           </form>
         </div>
+        )}
       </div>
     </div>
   );

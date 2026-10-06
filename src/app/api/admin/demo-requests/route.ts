@@ -1,7 +1,10 @@
-import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../../../wordbitx/lib/mongodb';
-import { canManageOrganization, requireOrganizationAuth } from '../../../../../wordbitx/lib/auth';
+import {
+  canManageOrganization,
+  requireAuth,
+  requirePlatformAdmin,
+} from '../../../../../wordbitx/lib/auth';
 import DemoRequest from '../../../../../wordbitx/models/DemoRequest';
 
 function jsonError(message: string, status: number) {
@@ -10,15 +13,20 @@ function jsonError(message: string, status: number) {
 
 export async function GET() {
   try {
-    const user = await requireOrganizationAuth();
-    if (!canManageOrganization(user.role)) {
-      return jsonError('Only workspace administrators can view demo requests.', 403);
+    const user = await requireAuth();
+    let filter = {};
+
+    if (user.role === 'SUPER_ADMIN') {
+      await requirePlatformAdmin();
+    } else {
+      if (!canManageOrganization(user.role) || !user.organizationId) {
+        return jsonError('Only workspace administrators can view demo requests.', 403);
+      }
+      filter = { organizationId: user.organizationId };
     }
 
     await connectToDatabase();
-    const requests = await DemoRequest.find({
-      organizationId: new mongoose.Types.ObjectId(user.organizationId),
-    })
+    const requests = await DemoRequest.find(filter)
       .sort({ createdAt: -1 })
       .lean();
 

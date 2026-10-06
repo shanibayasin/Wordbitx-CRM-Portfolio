@@ -4,8 +4,8 @@ import { getCurrentUser } from '../../../../wordbitx/lib/auth';
 import CRMApp from '../../../../wordbitx/src/App';
 
 export const metadata: Metadata = {
-  title: 'CRM Dashboard Preview',
-  description: 'Explore the WordbitX CRM dashboard using illustrative sample data.',
+  title: 'WordbitX CRM Dashboard',
+  description: 'Manage your authenticated WordbitX workspace.',
   robots: { index: false, follow: false },
 };
 
@@ -29,5 +29,20 @@ export default async function DashboardPage({
     redirect('/login');
   }
 
-  return <CRMApp />;
+  if (!user.role || !user.organizationId || !user.organizationName) {
+    redirect('/login');
+  }
+
+  return (
+    <CRMApp
+      workspaceIdentity={{
+        id: user.id,
+        name: user.name ?? '',
+        email: user.email ?? '',
+        role: user.role,
+        organizationId: user.organizationId,
+        organizationName: user.organizationName,
+      }}
+    />
+  );
 }

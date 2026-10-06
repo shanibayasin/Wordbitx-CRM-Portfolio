@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { BellRing, Building2, CalendarClock, Mail, Phone, RefreshCw } from 'lucide-react';
+import { BellRing, Building2, CalendarClock, Mail, Phone, RefreshCw, Search } from 'lucide-react';
 import { Badge } from '../ui/Badge.tsx';
 import { Button } from '../ui/Button.tsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card.tsx';
+import { Input } from '../ui/Input.tsx';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,10 @@ interface DemoRequest {
   updatedAt: string;
 }
 
+interface DemoRequestsPanelProps {
+  scope?: 'workspace' | 'platform';
+}
+
 const statusLabels: Record<RequestStatus, string> = {
   NEW: 'New',
   CONTACTED: 'Contacted',
@@ -47,9 +52,11 @@ function getErrorMessage(payload: unknown, fallback: string) {
   return fallback;
 }
 
-export function DemoRequestsPanel() {
+export function DemoRequestsPanel({ scope = 'workspace' }: DemoRequestsPanelProps) {
   const [requests, setRequests] = useState<DemoRequest[]>([]);
   const [selected, setSelected] = useState<DemoRequest | null>(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<RequestStatus | 'ALL'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState('');
@@ -114,6 +121,18 @@ export function DemoRequestsPanel() {
   };
 
   const newCount = requests.filter((request) => request.status === 'NEW').length;
+  const visibleRequests = requests.filter((request) => {
+    const matchesStatus = statusFilter === 'ALL' || request.status === statusFilter;
+    const query = search.trim().toLocaleLowerCase();
+    const matchesSearch = !query || [
+      request.name,
+      request.email,
+      request.company,
+      request.phone,
+      request.message,
+    ].some((value) => value.toLocaleLowerCase().includes(query));
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <>
@@ -125,7 +144,11 @@ export function DemoRequestsPanel() {
               Demo requests
               {newCount > 0 && <Badge variant="warning">{newCount} new</Badge>}
             </CardTitle>
-            <CardDescription>New website demo requests for this workspace.</CardDescription>
+            <CardDescription>
+              {scope === 'platform'
+                ? 'Website demo requests across the platform.'
+                : 'Website demo requests assigned to this workspace.'}
+            </CardDescription>
           </div>
           <Button
             type="button"
@@ -142,7 +165,7 @@ export function DemoRequestsPanel() {
             Refresh
           </Button>
         </CardHeader>
-        <CardContent className="max-h-96 space-y-3 overflow-y-auto">
+        <CardContent className="space-y-3">
           {error && (
             <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
               <span>{error}</span>
@@ -151,12 +174,37 @@ export function DemoRequestsPanel() {
               </Button>
             </div>
           )}
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_11rem]">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Input
+                aria-label="Search demo requests"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search name, email, company, or message"
+                className="pl-9"
+              />
+            </div>
+            <Select
+              aria-label="Filter demo requests by status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as RequestStatus | 'ALL')}
+            >
+              <option value="ALL">All statuses</option>
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </Select>
+          </div>
           {isLoading ? (
             <p className="py-5 text-center text-sm text-slate-500">Loading demo requests…</p>
           ) : requests.length === 0 ? (
             <p className="py-5 text-center text-sm text-slate-500">No demo requests have arrived yet.</p>
+          ) : visibleRequests.length === 0 ? (
+            <p className="py-5 text-center text-sm text-slate-500">No requests match these filters.</p>
           ) : (
-            requests.map((request) => (
+            <div className="max-h-96 space-y-3 overflow-y-auto">
+            {visibleRequests.map((request) => (
               <button
                 type="button"
                 key={request.id}
@@ -173,7 +221,8 @@ export function DemoRequestsPanel() {
                 </span>
                 <Badge variant={request.status === 'NEW' ? 'warning' : 'secondary'}>{statusLabels[request.status]}</Badge>
               </button>
-            ))
+            ))}
+            </div>
           )}
         </CardContent>
       </Card>

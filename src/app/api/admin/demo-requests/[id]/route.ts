@@ -2,7 +2,11 @@ import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import connectToDatabase from '../../../../../../wordbitx/lib/mongodb';
-import { canManageOrganization, requireOrganizationAuth } from '../../../../../../wordbitx/lib/auth';
+import {
+  canManageOrganization,
+  requireAuth,
+  requirePlatformAdmin,
+} from '../../../../../../wordbitx/lib/auth';
 import DemoRequest from '../../../../../../wordbitx/models/DemoRequest';
 
 const statusSchema = z.object({
@@ -15,14 +19,23 @@ function jsonError(message: string, status: number) {
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireOrganizationAuth();
-    if (!canManageOrganization(user.role)) {
-      return jsonError('Only workspace administrators can manage demo requests.', 403);
-    }
+    const user = await requireAuth();
 
     const { id } = await context.params;
     if (!mongoose.isValidObjectId(id)) {
       return jsonError('The demo request id is invalid.', 400);
+    }
+
+    const filter: { _id: mongoose.Types.ObjectId; organizationId?: string } = {
+      _id: new mongoose.Types.ObjectId(id),
+    };
+    if (user.role === 'SUPER_ADMIN') {
+      await requirePlatformAdmin();
+    } else {
+      if (!canManageOrganization(user.role) || !user.organizationId) {
+        return jsonError('Only workspace administrators can manage demo requests.', 403);
+      }
+      filter.organizationId = user.organizationId;
     }
 
     const body: unknown = await request.json().catch(() => null);
@@ -33,10 +46,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     await connectToDatabase();
     const updated = await DemoRequest.findOneAndUpdate(
-      {
-        _id: new mongoose.Types.ObjectId(id),
-        organizationId: new mongoose.Types.ObjectId(user.organizationId),
-      },
+      filter,
       { $set: { status: validation.data.status } },
       { new: true, runValidators: true }
     ).lean();

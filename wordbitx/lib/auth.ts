@@ -19,6 +19,11 @@ export type AuthenticatedSessionUser = {
   organizationName?: string;
 };
 
+export function isConfiguredPlatformAdminEmail(email?: string | null) {
+  const configuredEmail = process.env.PLATFORM_SUPER_ADMIN_EMAIL?.trim().toLowerCase();
+  return Boolean(configuredEmail && email?.trim().toLowerCase() === configuredEmail);
+}
+
 export async function getSafeServerSession() {
   const requestHeaders = await headers();
   const requestUrl = new URL('/api/auth/session', process.env.NEXTAUTH_URL ?? 'http://localhost');
@@ -49,7 +54,7 @@ export async function getCurrentUser(): Promise<AuthenticatedSessionUser | null>
   }
 
   if (user.role === 'SUPER_ADMIN') {
-    if (user.organizationId) {
+    if (user.organizationId || !isConfiguredPlatformAdminEmail(user.email)) {
       return null;
     }
     return {
@@ -59,6 +64,10 @@ export async function getCurrentUser(): Promise<AuthenticatedSessionUser | null>
       role: user.role,
       organizationId: null,
     };
+  }
+
+  if (isConfiguredPlatformAdminEmail(user.email)) {
+    return null;
   }
 
   if (!user.organizationId || !mongoose.isValidObjectId(user.organizationId)) {
@@ -143,7 +152,11 @@ export function canManageOrganization(role?: Role | string) {
 
 export async function requirePlatformAdmin(): Promise<AuthenticatedSessionUser> {
   const user = await requireAuth();
-  if (user.role !== 'SUPER_ADMIN' || user.organizationId) {
+  if (
+    user.role !== 'SUPER_ADMIN' ||
+    user.organizationId ||
+    !isConfiguredPlatformAdminEmail(user.email)
+  ) {
     const error = new Error('Platform administrator access is required.');
     (error as Error & { statusCode?: number }).statusCode = 403;
     throw error;
@@ -154,7 +167,7 @@ export async function requirePlatformAdmin(): Promise<AuthenticatedSessionUser> 
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 12 * 60 * 60,
   },
   providers: [
     CredentialsProvider({
@@ -182,8 +195,11 @@ export const authOptions: NextAuthOptions = {
           }
 
           const isPlatformAdmin = user.role === 'SUPER_ADMIN';
-          if (isPlatformAdmin && user.organizationId) {
-            throw new Error('Platform administrator accounts cannot be assigned to an organization.');
+          if (
+            isConfiguredPlatformAdminEmail(user.email) !== isPlatformAdmin ||
+            (isPlatformAdmin && user.organizationId)
+          ) {
+            throw new Error('Invalid email or password');
           }
           const organization = isPlatformAdmin
             ? null
